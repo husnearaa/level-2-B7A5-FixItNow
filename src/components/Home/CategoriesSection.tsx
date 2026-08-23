@@ -6,7 +6,7 @@ export default function QuickCategory() {
     // <section className="bg-slate-50 px-4 py-16 sm:py-20 lg:py-24">
     <section className="bg-[#F8FAFC] px-4 py-16 sm:py-20 lg:py-24">
       <div className="container mx-auto">
-        {/* Section Heading */}
+        
         {/* Section Header */}
         <div className="mx-auto mb-12 max-w-2xl text-center">
           {/* Small Label */}
