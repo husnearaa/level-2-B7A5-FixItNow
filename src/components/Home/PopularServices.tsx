@@ -72,7 +72,7 @@ const popularServices = [
 const PopularServices = () => {
   return (
     <section className="bg-bg-color px-4 py-16 lg:py-20">
-      <div className="mx-auto w-full max-w-[1200px]">
+      <div className="container mx-auto w-full ">
         {/* ================= HEADER ================= */}
         <div className="mb-10 flex flex-col gap-6 sm:mb-12 md:flex-row md:items-start md:justify-between">
           <div>

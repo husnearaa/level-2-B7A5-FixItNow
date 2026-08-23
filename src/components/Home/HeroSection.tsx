@@ -27,6 +27,7 @@ const HeroSection = () => {
 
       <div
         className="
+        container
           relative mx-auto
           min-h-[500px]
           w-full
