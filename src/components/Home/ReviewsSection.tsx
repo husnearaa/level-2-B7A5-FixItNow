@@ -47,7 +47,7 @@ const reviews: Review[] = [
 
 const ReviewsSection = () => {
   return (
-    <section className="bg-gray-100 px-4 py-16 sm:py-20 lg:py-24">
+    <section className="bg-[#00224A] px-4 py-16 sm:py-20 lg:py-24">
       <div className="mx-auto w-full max-w-[1440px]">
         {/* Section Header */}
         <div className="mx-auto mb-12 max-w-2xl text-center lg:mb-14">
@@ -55,7 +55,16 @@ const ReviewsSection = () => {
           <div className="mb-3 flex items-center justify-center gap-2">
             <span className="h-1.5 w-1.5 rounded-full bg-[#EC620B]" />
 
-            <span className="text-xs font-medium uppercase tracking-[0.15em] text-[#EC620B] sm:text-sm">
+            <span
+              className="
+                text-xs
+                font-medium
+                uppercase
+                tracking-[0.15em]
+                text-[#EC620B]
+                sm:text-sm
+              "
+            >
               Customer Reviews
             </span>
           </div>
@@ -67,7 +76,7 @@ const ReviewsSection = () => {
               font-semibold
               leading-[1.2]
               tracking-tight
-              text-[#00224A]
+              text-white
               sm:text-4xl
               lg:text-[42px]
             "
@@ -83,7 +92,7 @@ const ReviewsSection = () => {
               max-w-[570px]
               text-sm
               leading-relaxed
-              text-slate-500
+              text-white/60
               sm:text-base
             "
           >
@@ -93,7 +102,16 @@ const ReviewsSection = () => {
         </div>
 
         {/* Reviews */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+        <div
+          className="
+            grid
+            grid-cols-1
+            gap-6
+            md:grid-cols-2
+            lg:grid-cols-3
+            lg:gap-8
+          "
+        >
           {reviews.map((review) => (
             <div
               key={review.id}
@@ -105,14 +123,15 @@ const ReviewsSection = () => {
                 flex-col
                 rounded-2xl
                 border
-                border-slate-200
-                bg-white
+                border-white/10
+                bg-[#07345F]
                 p-6
                 transition-all
                 duration-300
                 hover:-translate-y-2
-                hover:border-[#EC620B]/30
-                hover:shadow-[0_16px_35px_rgba(0,34,74,0.08)]
+                hover:border-[#EC620B]/40
+                hover:bg-[#083A68]
+                hover:shadow-[0_16px_35px_rgba(0,0,0,0.20)]
                 sm:p-7
               "
             >
@@ -136,12 +155,27 @@ const ReviewsSection = () => {
                   group-hover:text-white
                 "
               >
-                <Quote size={19} fill="currentColor" />
+                <Quote
+                  size={19}
+                  fill="currentColor"
+                />
               </div>
 
               {/* Customer */}
               <div className="mb-5 flex items-center gap-4">
-                <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border-2 border-white shadow-md">
+                <div
+                  className="
+                    relative
+                    h-14
+                    w-14
+                    shrink-0
+                    overflow-hidden
+                    rounded-full
+                    border-2
+                    border-white/20
+                    shadow-md
+                  "
+                >
                   <Image
                     src={review.image}
                     alt={review.name}
@@ -152,11 +186,18 @@ const ReviewsSection = () => {
                 </div>
 
                 <div>
-                  <h3 className="text-base font-semibold text-[#00224A] sm:text-lg">
+                  <h3
+                    className="
+                      text-base
+                      font-semibold
+                      text-white
+                      sm:text-lg
+                    "
+                  >
                     {review.name}
                   </h3>
 
-                  <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
+                  <p className="mt-0.5 text-xs text-white/50 sm:text-sm">
                     {review.role}
                   </p>
                 </div>
@@ -173,13 +214,13 @@ const ReviewsSection = () => {
                   />
                 ))}
 
-                <span className="ml-2 text-xs font-medium text-slate-500">
+                <span className="ml-2 text-xs font-medium text-white/50">
                   {review.rating}.0
                 </span>
               </div>
 
               {/* Review */}
-              <p className="flex-1 text-sm leading-7 text-slate-600">
+              <p className="flex-1 text-sm leading-7 text-white/70">
                 &quot;{review.review}&quot;
               </p>
 

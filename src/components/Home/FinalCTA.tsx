@@ -1,18 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight, CheckCircle2 } from "lucide-react";
+import {
+  ArrowUpRight,
+  CheckCircle2,
+  Sparkles,
+} from "lucide-react";
 
 const FinalCTA = () => {
   return (
-    <section className="bg-white px-4 py-16 lg:py-20">
+    <section className="bg-[#F4F7FA] px-4 py-16 sm:py-20 lg:py-24">
       <div className="mx-auto w-full max-w-[1440px]">
         <div
           className="
             relative
             overflow-hidden
             rounded-3xl
-            bg-[#00224A]
+            border
+            border-[#00224A]/10
+            bg-[#EAF1F8]
             px-6
             py-12
             sm:px-10
@@ -21,30 +27,44 @@ const FinalCTA = () => {
             lg:py-16
           "
         >
-          {/* Decorative Circle */}
+          {/* Decorative Background Shape */}
           <div
             className="
               absolute
               -right-20
-              -top-20
-              h-64
-              w-64
+              -top-24
+              h-72
+              w-72
               rounded-full
-              border-[40px]
-              border-white/5
+              bg-[#00224A]/5
             "
           />
 
           <div
             className="
               absolute
-              -bottom-24
-              left-1/3
-              h-52
-              w-52
+              -bottom-28
+              -left-20
+              h-64
+              w-64
               rounded-full
-              border-[35px]
+              bg-[#EC620B]/5
+            "
+          />
+
+          {/* Decorative Orange Line */}
+          <div
+            className="
+              absolute
+              right-10
+              top-10
+              hidden
+              h-20
+              w-20
+              rounded-full
+              border-8
               border-[#EC620B]/10
+              sm:block
             "
           />
 
@@ -60,9 +80,31 @@ const FinalCTA = () => {
           >
             {/* Small Label */}
             <div className="mb-4 flex items-center justify-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#EC620B]" />
+              <span
+                className="
+                  flex
+                  h-7
+                  w-7
+                  items-center
+                  justify-center
+                  rounded-full
+                  bg-[#EC620B]/10
+                  text-[#EC620B]
+                "
+              >
+                <Sparkles size={14} />
+              </span>
 
-              <span className="text-xs font-medium uppercase tracking-[0.15em] text-[#EC620B] sm:text-sm">
+              <span
+                className="
+                  text-xs
+                  font-semibold
+                  uppercase
+                  tracking-[0.15em]
+                  text-[#EC620B]
+                  sm:text-sm
+                "
+              >
                 Get Started Today
               </span>
             </div>
@@ -74,12 +116,12 @@ const FinalCTA = () => {
                 font-semibold
                 leading-[1.2]
                 tracking-tight
-                text-white
+                text-[#00224A]
                 sm:text-4xl
                 lg:text-[44px]
               "
             >
-              Ready to Get Your Home Fixed?
+              Ready to Take Care of Your Home?
             </h2>
 
             {/* Description */}
@@ -90,12 +132,12 @@ const FinalCTA = () => {
                 max-w-[600px]
                 text-sm
                 leading-relaxed
-                text-white/65
+                text-slate-600
                 sm:text-base
               "
             >
               Find trusted professionals, choose a convenient time, and book
-              your next home service with FixItNow.
+              your home service with confidence.
             </p>
 
             {/* Benefits */}
@@ -111,7 +153,7 @@ const FinalCTA = () => {
                 sm:gap-6
               "
             >
-              <div className="flex items-center gap-2 text-sm text-white/75">
+              <div className="flex items-center gap-2 text-sm text-slate-600">
                 <CheckCircle2
                   size={17}
                   className="text-[#EC620B]"
@@ -120,7 +162,7 @@ const FinalCTA = () => {
                 Trusted Professionals
               </div>
 
-              <div className="flex items-center gap-2 text-sm text-white/75">
+              <div className="flex items-center gap-2 text-sm text-slate-600">
                 <CheckCircle2
                   size={17}
                   className="text-[#EC620B]"
@@ -129,7 +171,7 @@ const FinalCTA = () => {
                 Easy Booking
               </div>
 
-              <div className="flex items-center gap-2 text-sm text-white/75">
+              <div className="flex items-center gap-2 text-sm text-slate-600">
                 <CheckCircle2
                   size={17}
                   className="text-[#EC620B]"
@@ -139,7 +181,7 @@ const FinalCTA = () => {
               </div>
             </div>
 
-            {/* Button */}
+            {/* CTA Button */}
             <div className="mt-8 flex justify-center">
               <Link
                 href="/services"
@@ -155,11 +197,11 @@ const FinalCTA = () => {
                   text-sm
                   font-semibold
                   text-white
-                  shadow-lg
+                  shadow-md
                   transition-all
                   duration-300
-                  hover:bg-[#d95608]
-                  hover:shadow-xl
+                  hover:bg-[#D95608]
+                  hover:shadow-lg
                   active:scale-95
                 "
               >
