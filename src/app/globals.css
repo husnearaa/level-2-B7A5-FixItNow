@@ -8,7 +8,8 @@
 @theme {
   --color-background: #F9FAFB;
   --color-foreground: #000817;
-  --color-primary: #0073E6;
+  /* --color-primary: #0073E6; */
+  --color-primary: #00214C;
   --color-secondary: #3F4040;
   --color-success: #04DA8D;
   --color-info: #90e0ef;

@@ -12,9 +12,11 @@ const lexendDeca = Lexend_Deca({
 });
 export const metadata: Metadata = {
   title: "FixItNow",
- 
+   icons: {
+    icon: "/logo.png",
+  },
   description:
-    "Employee recognition and rewards platform to boost morale and engagement.",
+    "FixItNow is a platform for a home services marketplace.",
 };
 
 export default function RootLayout({
