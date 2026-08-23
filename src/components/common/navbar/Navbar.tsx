@@ -30,7 +30,7 @@ export default function Navbar() {
             width={500}
             height={500}
             priority
-            className="h-12 w-38"
+            className="h-14 w-40"
           />
         </Link>
 
@@ -47,7 +47,8 @@ export default function Navbar() {
                   href={link.href}
                   className={`font-medium transition-colors duration-200 text-sm ${
                     isActive
-                      ? "text-[#EC620B]"
+                      // ? "text-[#EC620B]"
+                      ? "text-button-bg"
                       : "text-[#00214C] hover:text-[#EC620B]"
                   }`}
                 >
@@ -60,7 +61,7 @@ export default function Navbar() {
           {/* Login Button */}
           <Link
             href="/login"
-            className="flex items-center gap-2 rounded-md bg-[#EC620B] px-5 py-2.5 font-medium text-white transition-all duration-200 hover:bg-[#d95608]"
+            className="flex items-center gap-2 rounded-md bg-button-bg px-5 py-2.5 font-medium text-white transition-all duration-200 hover:bg-[#d95608]"
           >
             <span>Login</span>
           </Link>
