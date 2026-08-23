@@ -250,7 +250,7 @@ const ServiceDetailsPage = async ({ params }: PageProps) => {
 
               {/* Booking Button */}
               <Link
-                href={`/services/${serviceId}/book`}
+                  href="/booking"
                 className="group mt-7 flex w-full items-center justify-center gap-2 rounded-md bg-[#EC620B] px-6 py-3.5 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:bg-[#d95608] hover:shadow-lg active:scale-[0.98]"
               >
                 Book This Service
