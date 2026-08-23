@@ -3,6 +3,21 @@
 
 @custom-variant dark (&:is(.dark *));
 
+
+/* Light Theme */
+@theme {
+  --color-background: #F9FAFB;
+  --color-foreground: #000817;
+  --color-primary: #0073E6;
+  --color-secondary: #3F4040;
+  --color-success: #04DA8D;
+  --color-info: #90e0ef;
+  --color-warning: #CF7106;
+  --color-danger: #DC3545;
+}
+
+
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -112,6 +127,104 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+
+@utility container {
+  margin-inline: auto;
+  padding-inline: 1rem;
+  @media (width >= --theme(--breakpoint-sm)) {
+    max-width: none;
+  }
+  @media (width >= 1440px) {
+    max-width: 1440px;
+  }
+}
+
+
+
+/***************** all button will be pointer default  **********************/
+
+button {
+  cursor: pointer;
+}
+
+/********************* Global Scroll customize scroll  **********************/
+
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+/* Customize the scrollbar track */
+::-webkit-scrollbar-track {
+  background: var(--color-foreground);
+  border-radius: 10px;
+}
+
+/* Customize the scrollbar thumb */
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 10px;
+  border: 3px solid #fff;
+}
+
+/* Add hover effect for thumb */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+/********************* Google Translate  ************************************/
+
+/* Remove the banner at top of the page */
+body {
+  top: 0 !important;
+  position: static !important;
+}
+
+body .skiptranslate {
+  display: none !important;
+}
+
+.goog-te-banner-frame.skiptranslate {
+  display: none !important;
+}
+
+.VIpgJd-ZVi9od-ORHb-OEVmcd.skiptranslate {
+  visibility: hidden !important;
+  height: 0 !important;
+  position: absolute !important;
+  top: 0 !important;
+}
+
+/********************* Ant Design Customization  ****************************/
+
+/*  Custom upload styles and hover */
+.ant-upload-wrapper :hover.ant-upload-drag {
+  border-color: var(--color-primary) !important;
+}
+
+/* Custom pagination styles */
+.custom-pagination .ant-pagination-item-active {
+  border-color: var(--color-primary) !important;
+}
+.custom-pagination .ant-pagination-item-active a {
+  color: var(--color-primary) !important;
+}
+
+.custom-pagination .ant-pagination-item:hover {
+  background-color: var(--color-primary) !important;
+}
+
+.custom-pagination .ant-pagination-item:hover a {
+  color: white !important;
+}
+
+.custom-spinner .ant-spin-dot {
+  color: var(--color-primary) !important;
+}
+
+
+
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -120,3 +233,6 @@
     @apply bg-background text-foreground;
   }
 }
+
+
+

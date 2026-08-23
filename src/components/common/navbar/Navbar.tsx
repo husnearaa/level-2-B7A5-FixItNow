@@ -41,7 +41,7 @@ export default function Navbar() {
       <div className="container mx-auto px-4 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center">
-          <Link href="/" className="flex items-center">
+          {/* <Link href="/" className="flex items-center">
             <Image
               src={logo}
               alt="AboutAerialLifts Logo"
@@ -51,7 +51,10 @@ export default function Navbar() {
             <span className="ml-2 text-white font-medium">
               AboutAerialLifts
             </span>
-          </Link>
+          </Link> */}
+          <span className="ml-2 text-white font-medium">
+              AboutAerialLifts
+            </span>
         </div>
 
         {/* Desktop Navigation */}

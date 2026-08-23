@@ -1,17 +1,20 @@
 import type { Metadata } from "next";
-import { Roboto } from "next/font/google";
+// @ts-expect-error CSS side-effect imports are handled by Next.js.
 import "./globals.css";
 import { Toaster } from "sonner";
+
 import ReduxProvider from "@/redux/ReduxProvider";
+import { Lexend_Deca } from "next/font/google";
 
-const roboto = Roboto({
+const lexendDeca = Lexend_Deca({
   subsets: ["latin"],
-  weight: ["100", "300", "400", "500", "700", "900"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
 });
-
 export const metadata: Metadata = {
-  title: "next-redux-typescript-starter",
-  description: "starter",
+  title: "FixItNow",
+ 
+  description:
+    "Employee recognition and rewards platform to boost morale and engagement.",
 };
 
 export default function RootLayout({
@@ -20,15 +23,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${roboto.className} antialiased`}
-        suppressHydrationWarning
-      >
+    <html lang="en">
+      <body className={`${lexendDeca.className} antialiased`}>
         <Toaster position="bottom-right" richColors />
+
         <ReduxProvider>{children}</ReduxProvider>
       </body>
     </html>
   );
 }
-
