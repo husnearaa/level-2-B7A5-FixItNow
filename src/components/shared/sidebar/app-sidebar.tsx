@@ -1,6 +1,7 @@
 "use client";
 
 import Logo from "@/assets/logo.png";
+
 import {
   Sidebar,
   SidebarContent,
@@ -8,16 +9,23 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { CalendarCheck, CalendarDays, ChartBarStacked, LayoutDashboard, Wrench } from "lucide-react";
+
+import {
+  CalendarCheck,
+  CalendarDays,
+  ChartBarStacked,
+  LayoutDashboard,
+  LogOut,
+  Wrench,
+} from "lucide-react";
+
 import Image from "next/image";
 import { NavMain } from "./nav-main";
-// import { NavUser } from "./nav-user";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+
 import { TbUsersGroup } from "react-icons/tb";
 import { MdOutlineEventNote } from "react-icons/md";
-
-
-
 
 const data = {
   admin: {
@@ -57,9 +65,9 @@ const data = {
         url: "/customer/payments-reviews",
         icon: MdOutlineEventNote,
       },
-      
     ],
   },
+
   technician: {
     navMain: [
       {
@@ -76,23 +84,36 @@ const data = {
         title: "Availability",
         url: "/technician/availability",
         icon: CalendarDays,
-      },   
+      },
       {
         title: "Booking Management",
         url: "/technician/booking",
         icon: CalendarCheck,
-      },   
+      },
     ],
   },
 };
 
-// add roles based on your requirements
 interface AppSidebarProps {
   role: string;
 }
 
-export default function AppSidebar({ role, ...props }: AppSidebarProps) {
-  const sidebarData = data[role?.toLowerCase() as keyof typeof data];
+export default function AppSidebar({
+  role,
+  ...props
+}: AppSidebarProps) {
+  const router = useRouter();
+
+  const sidebarData =
+    data[role?.toLowerCase() as keyof typeof data];
+
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+
+    router.push("/login");
+  };
 
   return (
     <Sidebar
@@ -102,7 +123,7 @@ export default function AppSidebar({ role, ...props }: AppSidebarProps) {
     >
       <SidebarHeader className="bg-white">
         <Link
-          href={"/"}
+          href="/"
           className="flex items-center w-[210px] px-4 max-h-40 justify-center mb-5"
         >
           <Image
@@ -110,16 +131,26 @@ export default function AppSidebar({ role, ...props }: AppSidebarProps) {
             alt="Logo"
             width={300}
             height={300}
-            className="size-auto "
+            className="size-auto"
           />
         </Link>
       </SidebarHeader>
+
       <SidebarContent className="bg-white text-primary border-t border-gray-200 px-2">
         <NavMain items={sidebarData?.navMain} />
       </SidebarContent>
-      <SidebarFooter className="bg-white">
-        {/* <NavUser /> */}
+
+      <SidebarFooter className="bg-white p-3">
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors bg-red-100 text-red-600 hover:bg-red-600 hover:text-white"
+        >
+          <LogOut className="h-5 w-5" />
+          <span>Logout</span>
+        </button>
       </SidebarFooter>
+
       <SidebarRail />
     </Sidebar>
   );

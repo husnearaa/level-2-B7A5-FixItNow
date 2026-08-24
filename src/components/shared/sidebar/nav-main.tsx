@@ -44,6 +44,7 @@ export function NavMain({
         {items?.map((item) => {
           const isActive = item.isActive || pathname === item.url;
 
+          // Items with sub-items
           if (item.items && item.items.length > 0) {
             return (
               <Collapsible
@@ -56,10 +57,10 @@ export function NavMain({
                   <CollapsibleTrigger asChild>
                     <SidebarMenuButton
                       tooltip={item.title}
-                      className={`${
+                      className={`border rounded-xl transition-all duration-200 ${
                         isActive
-                          ? "bg-[#00224A] text-white hover:bg-[#00224A]/90 hover:text-white"
-                          : "text-[#00224A] bg-white hover:bg-[#00224A]/5 hover:text-[#00224A]"
+                          ? "bg-[#00224A] text-white border-[#00224A] hover:bg-[#00224A]/90 hover:text-white"
+                          : "text-[#00224A] bg-white border-gray-200 hover:border-[#00224A]/20 hover:bg-[#00224A]/5 hover:text-[#00224A]"
                       }`}
                     >
                       {item.icon && (
@@ -78,10 +79,10 @@ export function NavMain({
                         <SidebarMenuSubItem key={subItem.title}>
                           <SidebarMenuSubButton
                             asChild
-                            className={`${
+                            className={`border rounded-lg transition-all duration-200 ${
                               pathname === subItem.url
-                                ? "bg-[#EC620B]/10 text-[#EC620B]"
-                                : "text-[#00224A] hover:bg-[#00224A]/5 hover:text-[#00224A]"
+                                ? "bg-[#EC620B]/10 text-[#EC620B] border-[#EC620B]/20"
+                                : "text-[#00224A] border-gray-200 hover:border-[#00224A]/20 hover:bg-[#00224A]/5 hover:text-[#00224A]"
                             }`}
                           >
                             <Link href={subItem.url}>
@@ -103,20 +104,25 @@ export function NavMain({
             );
           }
 
-          // If no sub-items, render as a simple link
+          // Simple navigation item
           return (
-            <SidebarMenuItem key={item.title} className="py-1">
+            <SidebarMenuItem
+              key={item.title}
+              className="py-1"
+            >
               <SidebarMenuButton
                 asChild
                 tooltip={item.title}
-                className={`${
+                className={`border rounded-xl transition-all duration-200 ${
                   isActive
-                    ? "bg-[#EC620B] text-white hover:bg-[#EC620B]/90 hover:text-white"
-                    : "text-[#00224A] bg-white hover:bg-[#00224A]/5 hover:text-[#00224A]"
+                    ? "bg-[#EC620B] text-white border-[#EC620B] shadow-sm hover:bg-[#EC620B]/90 hover:text-white"
+                    : "text-[#00224A] bg-white border-gray-200 hover:border-[#00224A]/20 hover:bg-[#00224A]/5 hover:text-[#00224A]"
                 } py-6`}
               >
                 <Link href={item.url}>
-                  {item.icon && <item.icon className="mr-2 h-7 w-7" />}
+                  {item.icon && (
+                    <item.icon className="mr-2 h-7 w-7" />
+                  )}
 
                   <span>{item.title}</span>
                 </Link>
