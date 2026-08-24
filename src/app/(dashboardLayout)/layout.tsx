@@ -1,5 +1,5 @@
 "use client";
-import AdminImg from "@/assets/icons/Ellipse.png";
+import AdminImg from "@/assets/logo.png";
 import AppSidebar from "@/components/shared/sidebar/app-sidebar";
 import {
   SidebarInset,
