@@ -214,7 +214,7 @@ const UserManagement = () => {
       {/* Header */}
       <div className="flex flex-col justify-between gap-4 border-b border-[#00224A]/10 p-5 md:flex-row md:items-center">
         <div>
-          <h2 className="text-lg font-bold text-[#00224A]">
+          <h2 className="text-2xl md:text-3xl font-semibold text-[#00224A]">
             User Management
           </h2>
 

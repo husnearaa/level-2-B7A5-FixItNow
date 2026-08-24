@@ -23,8 +23,8 @@ export default function DashboardLayout({
     <SidebarProvider>
       {/* Pass the user role dynamically to AppSidebar */}
       {/* <AppSidebar role={role} /> */}
-      {/* <AppSidebar role="admin" /> */}
-     <AppSidebar role="customer" />
+      <AppSidebar role="admin" />
+     {/* <AppSidebar role="customer" /> */}
       {/* <AppSidebar role="technician" /> */}
       <SidebarInset>
         <header

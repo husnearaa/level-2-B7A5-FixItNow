@@ -165,11 +165,11 @@ export default function CategoryManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] px-4 py-6 md:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#F8F9FA] px-4 py-6 md:px-6 lg:px-8 m-6 rounded-lg">
       {/* Header */}
       <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <h1 className=" text-xl lg:text-2xl font-bold text-[#00224A] md:text-3xl">
+          <h1 className=" text-2xl lg:text-3xl font-semibold text-[#00224A] md:text-3xl">
             Category Management
           </h1>
 

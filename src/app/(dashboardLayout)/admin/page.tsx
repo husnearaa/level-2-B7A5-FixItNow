@@ -45,11 +45,11 @@ const bookings = [
 
 export default function AdminDashboardPage() {
   return (
-    <div className="min-h-screen bg-[#F8F9FA] px-4 py-6 md:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#F8F9FA] px-4 py-6 md:px-6 lg:px-8 m-6 rounded-lg">
       {/* Header */}
       <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-[#00224A] md:text-3xl">
+          <h1 className="text-2xl font-semibold text-[#00224A] md:text-3xl">
             Admin Dashboard
           </h1>
 
@@ -62,7 +62,7 @@ export default function AdminDashboardPage() {
       {/* Statistics */}
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {/* Total Users */}
-        <div className="rounded-xl border border-[#00224A]/10 bg-[#FFF8F4] p-5 shadow-sm transition-shadow hover:shadow-md">
+        <div className="rounded-xl border border-[#00224A]/10 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm font-medium text-[#00224A]/60">
@@ -78,20 +78,10 @@ export default function AdminDashboardPage() {
               <Users className="h-5 w-5 text-white" />
             </div>
           </div>
-
-          <div className="mt-4 flex items-center gap-1 text-sm">
-            <ArrowUpRight className="h-4 w-4 text-green-600" />
-
-            <span className="font-semibold text-green-600">12.5%</span>
-
-            <span className="text-[#00224A]/50">
-              from last month
-            </span>
-          </div>
         </div>
 
         {/* Active Bookings */}
-        <div className="rounded-xl border border-[#00224A]/10 bg-[#FFF8F4] p-5 shadow-sm transition-shadow hover:shadow-md">
+        <div className="rounded-xl border border-[#00224A]/10 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm font-medium text-[#00224A]/60">
@@ -107,20 +97,10 @@ export default function AdminDashboardPage() {
               <CalendarDays className="h-5 w-5 text-white" />
             </div>
           </div>
-
-          <div className="mt-4 flex items-center gap-1 text-sm">
-            <ArrowUpRight className="h-4 w-4 text-green-600" />
-
-            <span className="font-semibold text-green-600">8.2%</span>
-
-            <span className="text-[#00224A]/50">
-              from last month
-            </span>
-          </div>
         </div>
 
         {/* Revenue */}
-        <div className="rounded-xl border border-[#00224A]/10 bg-[#FFF8F4] p-5 shadow-sm transition-shadow hover:shadow-md sm:col-span-2 xl:col-span-1">
+        <div className="rounded-xl border border-[#00224A]/10 bg-white p-5 shadow-sm transition-shadow hover:shadow-md sm:col-span-2 xl:col-span-1">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm font-medium text-[#00224A]/60">
@@ -136,21 +116,11 @@ export default function AdminDashboardPage() {
               <DollarSign className="h-5 w-5 text-white" />
             </div>
           </div>
-
-          <div className="mt-4 flex items-center gap-1 text-sm">
-            <ArrowUpRight className="h-4 w-4 text-green-600" />
-
-            <span className="font-semibold text-green-600">15.8%</span>
-
-            <span className="text-[#00224A]/50">
-              from last month
-            </span>
-          </div>
         </div>
       </div>
 
       {/* Recent Bookings */}
-      <div className="rounded-xl border border-[#00224A]/10 bg-[#FFF8F4] shadow-sm">
+      <div className="rounded-xl border border-[#00224A]/10 bg-white shadow-sm">
         {/* Section Header */}
         <div className="flex items-center justify-between border-b border-[#00224A]/10 p-5">
           <div>
