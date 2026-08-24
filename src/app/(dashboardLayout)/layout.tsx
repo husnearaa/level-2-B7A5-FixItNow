@@ -24,6 +24,8 @@ export default function DashboardLayout({
       {/* Pass the user role dynamically to AppSidebar */}
       {/* <AppSidebar role={role} /> */}
       <AppSidebar role="admin" />
+     {/* <AppSidebar role="customer" /> */}
+      {/* <AppSidebar role="technician" /> */}
       <SidebarInset>
         <header
           className="flex justify-between items-center gap-2 

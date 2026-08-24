@@ -8,14 +8,14 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Settings, SquareDivide } from "lucide-react";
+import { ChartBarStacked, LayoutDashboard, Settings, SquareDivide } from "lucide-react";
 import Image from "next/image";
 import { NavMain } from "./nav-main";
 // import { NavUser } from "./nav-user";
 import Link from "next/link";
 import { TbUsersGroup } from "react-icons/tb";
 import { GoBriefcase } from "react-icons/go";
-import { PiCreditCard } from "react-icons/pi";
+
 
 
 const data = {
@@ -30,6 +30,11 @@ const data = {
         title: "User Management",
         url: "/admin/users",
         icon: TbUsersGroup,
+      },
+      {
+        title: "Category Management",
+        url: "/admin/categories",
+        icon: ChartBarStacked,
       },
     ],
   },

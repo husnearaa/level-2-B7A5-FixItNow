@@ -1,12 +1,10 @@
 "use client";
 
 import {
-  Activity,
   ArrowUpRight,
   CalendarDays,
   CheckCircle2,
   DollarSign,
-  MoreHorizontal,
   Users,
 } from "lucide-react";
 
