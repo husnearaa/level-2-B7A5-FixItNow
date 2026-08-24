@@ -62,8 +62,8 @@ const data = {
         icon: LayoutDashboard,
       },
       {
-        title: "Job Posting",
-        url: "/technician/job-posting",
+        title: "Service Management",
+        url: "/technician/services",
         icon: GoBriefcase,
       },
       

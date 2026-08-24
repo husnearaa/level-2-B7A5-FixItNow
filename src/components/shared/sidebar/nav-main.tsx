@@ -111,7 +111,7 @@ export function NavMain({
                 tooltip={item.title}
                 className={`${
                   isActive
-                    ? "bg-[#00224A] text-white hover:bg-[#00224A]/90 hover:text-white"
+                    ? "bg-[#EC620B] text-white hover:bg-[#EC620B]/90 hover:text-white"
                     : "text-[#00224A] bg-white hover:bg-[#00224A]/5 hover:text-[#00224A]"
                 } py-6`}
               >
