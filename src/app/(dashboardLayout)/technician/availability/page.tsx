@@ -152,13 +152,13 @@ export default function TechnicianAvailabilityPage() {
       {/* Header */}
       <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-[#00224A] md:text-3xl">
+          <h1 className="text-2xl font-semibold text-[#00224A] md:text-3xl">
             Availability Scheduler
           </h1>
 
-          <p className="mt-1 text-sm text-[#00224A]/60">
+          {/* <p className="mt-1 text-sm text-[#00224A]/60">
             Set your working hours and manage your unavailable dates.
-          </p>
+          </p> */}
         </div>
 
         <div className="flex items-center gap-2 rounded-lg border border-[#00224A]/10 bg-white px-4 py-2 shadow-sm">

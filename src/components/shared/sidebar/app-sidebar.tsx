@@ -71,6 +71,11 @@ const data = {
         url: "/technician/availability",
         icon: GoBriefcase,
       },   
+      {
+        title: "Booking Management",
+        url: "/technician/booking",
+        icon: GoBriefcase,
+      },   
     ],
   },
 };
@@ -86,7 +91,7 @@ export default function AppSidebar({ role, ...props }: AppSidebarProps) {
   return (
     <Sidebar
       collapsible="icon"
-      className="w-68 bg-white border-r border-white"
+      className="w-60 bg-white border-r border-white"
       {...props}
     >
       <SidebarHeader className="bg-white">
