@@ -193,7 +193,7 @@ const TechniciansPage = () => {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-gray-100">
       {/* =====================================================
           HERO
       ====================================================== */}

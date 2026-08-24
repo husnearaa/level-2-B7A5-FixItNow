@@ -104,7 +104,7 @@ const BookingPage = () => {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 py-16">
+    <main className="min-h-screen bg-gray-100 py-16">
       <section className="px-4 py-10 sm:py-12 lg:py-14">
         <div className="mx-auto w-full max-w-6xl">
           {/* Back */}
