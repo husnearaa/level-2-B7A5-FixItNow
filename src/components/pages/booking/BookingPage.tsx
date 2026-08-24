@@ -2,12 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+
 import {
   ArrowLeft,
   ArrowUpRight,
   CalendarDays,
-  Clock3,
   MapPin,
   ShieldCheck,
   Star,
@@ -30,6 +31,7 @@ const timeSlots = [
 ];
 
 const service = {
+  id: "service-001",
   title: "Professional Home Cleaning",
   category: "Cleaning",
   image:
@@ -49,11 +51,12 @@ const service = {
 };
 
 const BookingPage = () => {
+  const router = useRouter();
+
   const {
     register,
     handleSubmit,
     watch,
-    setValue,
     formState: { errors },
   } = useForm<BookingFormData>({
     defaultValues: {
@@ -68,29 +71,42 @@ const BookingPage = () => {
   const selectedDate = watch("date");
 
   const onSubmit = (data: BookingFormData) => {
-    console.log("Booking Data:", {
-      ...data,
-      serviceId: "service-id",
+    // Prepare booking information
+    const bookingData = {
+      serviceId: service.id,
       serviceName: service.title,
       price: service.price,
+      date: data.date,
+      time: data.time,
+      address: data.address,
+      notes: data.notes,
+    };
+
+    console.log("Booking Data:", bookingData);
+
+    /*
+      Pass booking information to payment page.
+
+      URLSearchParams automatically handles spaces,
+      special characters, etc.
+    */
+    const params = new URLSearchParams({
+      serviceId: service.id,
+      serviceName: service.title,
+      price: service.price.toString(),
+      date: data.date,
+      time: data.time,
+      address: data.address,
+      notes: data.notes || "",
     });
 
-    // Later:
-    // router.push("/payment");
-    //
-    // You can pass/store:
-    // serviceId
-    // date
-    // time
-    // address
-    // notes
-    // price
+    router.push(`/payment?${params.toString()}`);
   };
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-gray-50 py-16">
       <section className="px-4 py-10 sm:py-12 lg:py-14">
-        <div className="mx-auto w-6xl">
+        <div className="mx-auto w-full max-w-6xl">
           {/* Back */}
           <Link
             href="/services"
@@ -104,6 +120,7 @@ const BookingPage = () => {
             {/* =====================================================
                 LEFT — BOOKING FORM
             ====================================================== */}
+
             <form
               onSubmit={handleSubmit(onSubmit)}
               className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8"
@@ -119,7 +136,10 @@ const BookingPage = () => {
                 </p>
               </div>
 
-              {/* DATE & TIME */}
+              {/* =====================================================
+                  DATE & TIME
+              ====================================================== */}
+
               <div className="border-b border-slate-100 py-6">
                 <h2 className="mb-5 text-lg font-semibold text-[#00224A]">
                   Date & Time
@@ -127,6 +147,7 @@ const BookingPage = () => {
 
                 <div className="grid gap-5 sm:grid-cols-2">
                   {/* DATE */}
+
                   <div>
                     <label
                       htmlFor="date"
@@ -148,7 +169,9 @@ const BookingPage = () => {
                           required: "Please select a service date",
                         })}
                         className={`w-full rounded-lg border bg-white py-3 pl-10 pr-3 text-sm text-slate-700 outline-none transition focus:border-[#EC620B] focus:ring-2 focus:ring-[#EC620B]/10 ${
-                          errors.date ? "border-red-400" : "border-slate-200"
+                          errors.date
+                            ? "border-red-400"
+                            : "border-slate-200"
                         }`}
                       />
                     </div>
@@ -161,17 +184,24 @@ const BookingPage = () => {
                   </div>
 
                   {/* TIME */}
+
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-[#00224A]">
+                    <label
+                      htmlFor="time"
+                      className="mb-2 block text-sm font-medium text-[#00224A]"
+                    >
                       Preferred Time
                     </label>
 
                     <select
+                      id="time"
                       {...register("time", {
                         required: "Please select a time",
                       })}
                       className={`w-full rounded-lg border bg-white px-3.5 py-3 text-sm text-slate-700 outline-none transition focus:border-[#EC620B] focus:ring-2 focus:ring-[#EC620B]/10 ${
-                        errors.time ? "border-red-400" : "border-slate-200"
+                        errors.time
+                          ? "border-red-400"
+                          : "border-slate-200"
                       }`}
                     >
                       <option value="">Select a time</option>
@@ -192,8 +222,11 @@ const BookingPage = () => {
                 </div>
               </div>
 
-              {/* SERVICE LOCATION */}
-              <div className="border-t border-slate-100 pt-6">
+              {/* =====================================================
+                  SERVICE LOCATION
+              ====================================================== */}
+
+              <div className="border-b border-slate-100 py-6">
                 <h2 className="text-lg font-semibold text-[#00224A]">
                   Service Location
                 </h2>
@@ -220,7 +253,9 @@ const BookingPage = () => {
                         required: "Please enter your service address",
                       })}
                       className={`w-full resize-none rounded-lg border py-3 pl-10 pr-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#EC620B] focus:ring-2 focus:ring-[#EC620B]/10 ${
-                        errors.address ? "border-red-400" : "border-slate-200"
+                        errors.address
+                          ? "border-red-400"
+                          : "border-slate-200"
                       }`}
                     />
                   </div>
@@ -233,14 +268,19 @@ const BookingPage = () => {
                 </div>
               </div>
 
-              {/* ADDITIONAL INFORMATION */}
-              <div className="border-t border-slate-100 pt-6">
+              {/* =====================================================
+                  ADDITIONAL INFORMATION
+              ====================================================== */}
+
+              <div className="border-b border-slate-100 py-6">
                 <label
                   htmlFor="notes"
                   className="block text-sm font-medium text-[#00224A]"
                 >
                   Additional Information{" "}
-                  <span className="font-normal text-slate-400">(Optional)</span>
+                  <span className="font-normal text-slate-400">
+                    (Optional)
+                  </span>
                 </label>
 
                 <textarea
@@ -252,13 +292,17 @@ const BookingPage = () => {
                 />
               </div>
 
-              {/* SUBMIT */}
-              <div className="border-t border-slate-100 pt-6">
+              {/* =====================================================
+                  SUBMIT
+              ====================================================== */}
+
+              <div className="pt-6">
                 <button
                   type="submit"
                   className="group flex w-full items-center justify-center gap-2 rounded-lg bg-[#EC620B] px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:bg-[#d95608] hover:shadow-md active:scale-[0.98]"
                 >
                   Continue to Payment
+
                   <ArrowUpRight
                     size={18}
                     strokeWidth={2.5}
@@ -267,7 +311,11 @@ const BookingPage = () => {
                 </button>
 
                 <div className="mt-3 flex items-center justify-center gap-2 text-xs text-slate-400">
-                  <ShieldCheck size={15} className="text-[#EC620B]" />
+                  <ShieldCheck
+                    size={15}
+                    className="text-[#EC620B]"
+                  />
+
                   Secure booking and payment
                 </div>
               </div>
@@ -276,9 +324,11 @@ const BookingPage = () => {
             {/* =====================================================
                 RIGHT — SERVICE SUMMARY
             ====================================================== */}
+
             <aside className="lg:sticky lg:top-24">
               <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                 {/* IMAGE */}
+
                 <div className="relative h-52">
                   <Image
                     src={service.image}
@@ -299,14 +349,20 @@ const BookingPage = () => {
                 </div>
 
                 {/* CONTENT */}
+
                 <div className="p-6">
                   <h2 className="text-xl font-semibold leading-snug text-[#00224A]">
                     {service.title}
                   </h2>
 
                   {/* RATING */}
+
                   <div className="mt-3 flex items-center gap-2">
-                    <Star size={16} fill="#EC620B" className="text-[#EC620B]" />
+                    <Star
+                      size={16}
+                      fill="#EC620B"
+                      className="text-[#EC620B]"
+                    />
 
                     <span className="text-sm font-semibold text-[#00224A]">
                       {service.rating}
@@ -318,6 +374,7 @@ const BookingPage = () => {
                   </div>
 
                   {/* TECHNICIAN */}
+
                   <div className="mt-5 flex items-center gap-3 rounded-xl bg-slate-50 p-3.5">
                     <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full">
                       <Image
@@ -345,6 +402,7 @@ const BookingPage = () => {
                   </div>
 
                   {/* SUMMARY */}
+
                   <div className="my-5 border-t border-slate-200 pt-5">
                     <h3 className="text-sm font-semibold text-[#00224A]">
                       Booking Summary
@@ -352,7 +410,9 @@ const BookingPage = () => {
 
                     <div className="mt-4 space-y-3.5">
                       <div className="flex items-center justify-between gap-4 text-sm">
-                        <span className="text-slate-500">Date</span>
+                        <span className="text-slate-500">
+                          Date
+                        </span>
 
                         <span className="font-medium text-[#00224A]">
                           {selectedDate || "Not selected"}
@@ -360,7 +420,9 @@ const BookingPage = () => {
                       </div>
 
                       <div className="flex items-center justify-between gap-4 text-sm">
-                        <span className="text-slate-500">Time</span>
+                        <span className="text-slate-500">
+                          Time
+                        </span>
 
                         <span className="font-medium text-[#00224A]">
                           {selectedTime || "Not selected"}
@@ -368,7 +430,9 @@ const BookingPage = () => {
                       </div>
 
                       <div className="flex items-center justify-between gap-4 text-sm">
-                        <span className="text-slate-500">Duration</span>
+                        <span className="text-slate-500">
+                          Duration
+                        </span>
 
                         <span className="font-medium text-[#00224A]">
                           {service.duration}
@@ -376,7 +440,9 @@ const BookingPage = () => {
                       </div>
 
                       <div className="flex items-center justify-between gap-4 text-sm">
-                        <span className="text-slate-500">Location</span>
+                        <span className="text-slate-500">
+                          Location
+                        </span>
 
                         <span className="font-medium text-[#00224A]">
                           {service.location}
@@ -386,10 +452,13 @@ const BookingPage = () => {
                   </div>
 
                   {/* PRICE */}
+
                   <div className="border-t border-slate-200 pt-5">
                     <div className="flex items-end justify-between">
                       <div>
-                        <p className="text-xs text-slate-400">Service price</p>
+                        <p className="text-xs text-slate-400">
+                          Service price
+                        </p>
 
                         <p className="mt-1 text-3xl font-bold text-[#00224A]">
                           ${service.price.toLocaleString()}
@@ -403,6 +472,7 @@ const BookingPage = () => {
                   </div>
 
                   {/* SECURITY */}
+
                   <div className="mt-5 flex gap-3 rounded-xl bg-[#00224A]/5 p-3.5">
                     <ShieldCheck
                       size={18}
@@ -410,8 +480,8 @@ const BookingPage = () => {
                     />
 
                     <p className="text-xs leading-5 text-slate-500">
-                      Your booking is protected with verified professionals and
-                      secure payment.
+                      Your booking is protected with verified
+                      professionals and secure payment.
                     </p>
                   </div>
                 </div>
