@@ -40,13 +40,13 @@ export default function DashboardLayout({
           <div className="flex flex-col lg:flex-row gap-5 lg:pr-8">
             <div className="flex items-center gap-3">
               <div className="flex items-center  text-primary rounded-full">
-                <Image
+                {/* <Image
                   src={AdminImg}
                   alt="user"
                   width={500}
                   height={500}
                   className="w-[39px] h-[39px] rounded-full object-cover"
-                />
+                /> */}
                 {/* <h1 className="text-primary lg:text-sm text-xs font-medium">
                   name
                 </h1> */}
@@ -54,7 +54,7 @@ export default function DashboardLayout({
             </div>
           </div>
         </header>
-        <div className="p-4 pt-0 bg-white min-h-screen">{children}</div>
+        <div className="p-4 pt-0 bg-slate-100 min-h-screen">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );

@@ -154,13 +154,14 @@ button {
 
 /* Customize the scrollbar track */
 ::-webkit-scrollbar-track {
-  background: var(--color-foreground);
+  /* background: var(--color-foreground); */
   border-radius: 10px;
 }
 
 /* Customize the scrollbar thumb */
 ::-webkit-scrollbar-thumb {
-  background: var(--color-primary);
+  /* background: var(--color-primary); */
+  background: #00224A;
   border-radius: 10px;
   border: 3px solid #fff;
 }

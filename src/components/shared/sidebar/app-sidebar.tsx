@@ -13,15 +13,10 @@ import Image from "next/image";
 import { NavMain } from "./nav-main";
 // import { NavUser } from "./nav-user";
 import Link from "next/link";
-import { FaRegAddressCard } from "react-icons/fa";
 import { TbUsersGroup } from "react-icons/tb";
-import { BsBadgeAd } from "react-icons/bs";
-import { RiGraduationCapLine } from "react-icons/ri";
 import { GoBriefcase } from "react-icons/go";
 import { PiCreditCard } from "react-icons/pi";
-import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
-import { MdOutlineVideoCameraFront } from "react-icons/md";
-import { TbFileDollar } from "react-icons/tb";
+
 
 const data = {
   admin: {
@@ -37,85 +32,41 @@ const data = {
         icon: TbUsersGroup,
       },
       {
-        title: "Job Management",
-        url: "/admin/jobs",
-        icon: GoBriefcase,
-      },
-      {
-        title: "All communities Category",
-        url: "/admin/communities-category",
-        icon: GoBriefcase,
-      },
-      {
-        title: "All Reported Community Posts",
-        url: "/admin/reported-community-post",
-        icon: GoBriefcase,
-      },
-      {
-        title: "Subscription",
-        url: "/admin/subscription",
-        icon: FaRegAddressCard,
-      },
-      {
-        title: "Advertising",
-        url: "/admin/advertising",
-        icon: BsBadgeAd,
-      },
-      {
-        title: "Coupon",
-        url: "/admin/coupon",
-        icon: SquareDivide,
-      },
-      {
         title: "Payment History",
         url: "/admin/payment",
         icon: PiCreditCard,
       },
-      {
-        title: "Setting",
-        url: "/admin/settings",
-        icon: Settings,
-      },
     ],
   },
 
-  employer: {
+  customer: {
     navMain: [
       {
         title: "Dashboard",
-        url: "/employer",
+        url: "/customer",
         icon: LayoutDashboard,
       },
       {
         title: "Job Posting",
-        url: "/employer/job-posting",
+        url: "/customer/job-posting",
         icon: GoBriefcase,
       },
+      
+    ],
+  },
+  technician: {
+    navMain: [
       {
-        title: "Interview",
-        url: "/employer/interview",
-        icon: MdOutlineVideoCameraFront,
+        title: "Dashboard",
+        url: "/technician",
+        icon: LayoutDashboard,
       },
       {
-        title: "Candidate",
-        url: "/employer/candidate",
-        icon: FaRegAddressCard,
+        title: "Job Posting",
+        url: "/technician/job-posting",
+        icon: GoBriefcase,
       },
-      {
-        title: "Subscription",
-        url: "/employer/subscription",
-        icon: TbFileDollar,
-      },
-      {
-        title: "Chat",
-        url: "/employer/chatting",
-        icon: IoChatbubbleEllipsesOutline,
-      },
-      {
-        title: "Profile",
-        url: "/employer/profile",
-        icon: Settings,
-      },
+      
     ],
   },
 };
