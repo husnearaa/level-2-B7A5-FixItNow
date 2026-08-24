@@ -31,11 +31,6 @@ const data = {
         url: "/admin/users",
         icon: TbUsersGroup,
       },
-      {
-        title: "Payment History",
-        url: "/admin/payment",
-        icon: PiCreditCard,
-      },
     ],
   },
 
