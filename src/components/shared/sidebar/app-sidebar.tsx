@@ -66,7 +66,11 @@ const data = {
         url: "/technician/services",
         icon: GoBriefcase,
       },
-      
+      {
+        title: "Availability",
+        url: "/technician/availability",
+        icon: GoBriefcase,
+      },   
     ],
   },
 };
