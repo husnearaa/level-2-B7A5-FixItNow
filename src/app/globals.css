@@ -3,7 +3,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-
 /* Light Theme */
 @theme {
   --color-background: #F9FAFB;
@@ -19,8 +18,6 @@
   --color-warning: #CF7106;
   --color-danger: #DC3545;
 }
-
-
 
 @theme inline {
   --color-background: var(--background);
@@ -131,7 +128,6 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
-
 @utility container {
   margin-inline: auto;
   padding-inline: 1rem;
@@ -142,8 +138,6 @@
     max-width: 1440px;
   }
 }
-
-
 
 /***************** all button will be pointer default  **********************/
 
@@ -226,9 +220,6 @@ body .skiptranslate {
   color: var(--color-primary) !important;
 }
 
-
-
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -237,6 +228,4 @@ body .skiptranslate {
     @apply bg-background text-foreground;
   }
 }
-
-
 
