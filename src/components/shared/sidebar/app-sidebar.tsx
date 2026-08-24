@@ -8,13 +8,14 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { ChartBarStacked, LayoutDashboard, Settings, SquareDivide } from "lucide-react";
+import { CalendarCheck, CalendarDays, ChartBarStacked, LayoutDashboard, Wrench } from "lucide-react";
 import Image from "next/image";
 import { NavMain } from "./nav-main";
 // import { NavUser } from "./nav-user";
 import Link from "next/link";
 import { TbUsersGroup } from "react-icons/tb";
 import { GoBriefcase } from "react-icons/go";
+
 
 
 
@@ -64,17 +65,17 @@ const data = {
       {
         title: "Service Management",
         url: "/technician/services",
-        icon: GoBriefcase,
+        icon: Wrench,
       },
       {
         title: "Availability",
         url: "/technician/availability",
-        icon: GoBriefcase,
+        icon: CalendarDays,
       },   
       {
         title: "Booking Management",
         url: "/technician/booking",
-        icon: GoBriefcase,
+        icon: CalendarCheck,
       },   
     ],
   },

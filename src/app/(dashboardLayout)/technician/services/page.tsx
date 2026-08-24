@@ -106,8 +106,8 @@ export default function TechnicianProfilePage() {
       {/* Header */}
       <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-[#00224A]">
-            Profile & Services
+          <h1 className="md:text-2xl text-lg font-semibold text-[#00224A]">
+            Service Management
           </h1>
 
           <p className="mt-1 text-sm text-[#00224A]/60">

@@ -198,7 +198,7 @@ export default function TechnicianBookingsPage() {
     <div className="min-h-screen w-full px-4 py-6 md:px-6 lg:px-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[#00224A] md:text-3xl">
+        <h1 className="text-2xl font-semibold text-[#00224A] md:text-3xl">
           Booking Management
         </h1>
         <p className="mt-1 text-sm text-[#00224A]/60">
