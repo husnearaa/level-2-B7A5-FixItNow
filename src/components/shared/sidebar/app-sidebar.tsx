@@ -14,7 +14,7 @@ import { NavMain } from "./nav-main";
 // import { NavUser } from "./nav-user";
 import Link from "next/link";
 import { TbUsersGroup } from "react-icons/tb";
-import { GoBriefcase } from "react-icons/go";
+import { MdOutlineEventNote } from "react-icons/md";
 
 
 
@@ -48,9 +48,14 @@ const data = {
         icon: LayoutDashboard,
       },
       {
-        title: "Job Posting",
-        url: "/customer/job-posting",
-        icon: GoBriefcase,
+        title: "Booking Service",
+        url: "/customer/booking-service",
+        icon: MdOutlineEventNote,
+      },
+      {
+        title: "Payments and Reviews",
+        url: "/customer/payments-reviews",
+        icon: MdOutlineEventNote,
       },
       
     ],
