@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-// @ts-expect-error CSS side-effect imports are handled by Next.js.
+ 
 import "./globals.css";
 import { Toaster } from "sonner";
 

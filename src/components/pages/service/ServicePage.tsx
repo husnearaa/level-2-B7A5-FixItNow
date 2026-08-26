@@ -790,7 +790,7 @@ const ServicesPage = () => {
                         </span>
 
                         <span className="text-base font-semibold text-[#00224A]">
-                          ৳{service.startingPrice}
+                          ${service.startingPrice}
                         </span>
                       </div>
 

@@ -169,7 +169,7 @@ const ServiceDetailsPage = async ({ params }: PageProps) => {
 
                 <div className="mt-1 flex items-end gap-2">
                   <span className="text-3xl font-bold text-[#00224A] sm:text-4xl">
-                    ৳{service.price.toLocaleString()}
+                    ${service.price.toLocaleString()}
                   </span>
 
                   <span className="mb-1 text-sm text-slate-400">
