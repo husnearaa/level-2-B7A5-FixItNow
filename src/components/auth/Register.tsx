@@ -13,6 +13,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Logo from "@/assets/logo.png";
 
+// Change this path according to your project structure
+import { useRegisterMutation } from "@/redux/api/authApi";
+
 const registerSchema = z
   .object({
     name: z
@@ -52,7 +55,8 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+
+  const [registerUser, { isLoading }] = useRegisterMutation();
 
   const {
     register,
@@ -73,9 +77,6 @@ const Register = () => {
 
   const onRegister = async (data: RegisterFormData) => {
     try {
-      setIsLoading(true);
-
-      // API integration will be added later.
       const registrationData = {
         name: data.name,
         email: data.email,
@@ -84,24 +85,13 @@ const Register = () => {
         address: data.address,
       };
 
-      console.log("Registration data:", registrationData);
+      await registerUser(registrationData).unwrap();
 
-      // Temporary success message
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      toast.success("Registration form submitted successfully!");
-
+      toast.success("Registration successful!");
       reset();
-
-      // Later:
-      // const response = await registration(registrationData).unwrap();
-      // router.push("/auth/login");
-
     } catch (error) {
       console.error("Registration error:", error);
       toast.error("Something went wrong. Please try again.");
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -263,9 +253,7 @@ const Register = () => {
                     setShowPassword((previous) => !previous)
                   }
                   aria-label={
-                    showPassword
-                      ? "Hide password"
-                      : "Show password"
+                    showPassword ? "Hide password" : "Show password"
                   }
                   className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-slate-400 transition hover:text-[#00224A]"
                 >
