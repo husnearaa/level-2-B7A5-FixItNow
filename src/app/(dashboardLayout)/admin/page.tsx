@@ -1,49 +1,70 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 "use client";
 
+import { useGetAllBookingsQuery } from "@/redux/api/bookingApi";
+import { useGetAllUserQuery } from "@/redux/api/userApi";
 import {
-  ArrowUpRight,
   CalendarDays,
   CheckCircle2,
   DollarSign,
   Users,
 } from "lucide-react";
 
-const bookings = [
-  {
-    id: "#BK-1024",
-    customer: "Sarah Ahmed",
-    technician: "James Wilson",
-    service: "Home Cleaning",
-    date: "Aug 24, 2026",
-    status: "PAID",
-  },
-  {
-    id: "#BK-1023",
-    customer: "Emily Johnson",
-    technician: "David Smith",
-    service: "Plumbing",
-    date: "Aug 24, 2026",
-    status: "IN_PROGRESS",
-  },
-  {
-    id: "#BK-1022",
-    customer: "Michael Brown",
-    technician: "Robert Lee",
-    service: "Electrical",
-    date: "Aug 23, 2026",
-    status: "COMPLETED",
-  },
-  {
-    id: "#BK-1021",
-    customer: "Maria Khan",
-    technician: "James Wilson",
-    service: "AC Repair",
-    date: "Aug 23, 2026",
-    status: "REQUESTED",
-  },
-];
+// import {
+//   useGetAllBookingsQuery,
+//   useGetAllUserQuery,
+// } from "@/redux/api/adminApi";
 
 export default function AdminDashboardPage() {
+  const {
+    data: usersResponse,
+    isLoading: usersLoading,
+    isError: usersError,
+  } = useGetAllUserQuery({});
+
+  const {
+    data: bookingsResponse,
+    isLoading: bookingsLoading,
+    isError: bookingsError,
+  } = useGetAllBookingsQuery({});
+
+  /*
+   * Your API response may be:
+   *
+   * {
+   *   success: true,
+   *   data: [...]
+   * }
+   *
+   * or:
+   *
+   * {
+   *   success: true,
+   *   data: {
+   *     data: [...]
+   *   }
+   * }
+   *
+   * These helpers handle both common structures.
+   */
+
+  const users =
+    usersResponse?.data?.data ??
+    usersResponse?.data ??
+    [];
+
+  const bookings =
+    bookingsResponse?.data?.data ??
+    bookingsResponse?.data ??
+    [];
+
+  const totalUsers = Array.isArray(users) ? users.length : 0;
+
+  const totalBookings = Array.isArray(bookings)
+    ? bookings.length
+    : 0;
+
   return (
     <div className="min-h-screen bg-[#F8F9FA] px-4 py-6 md:px-6 lg:px-8 m-6 rounded-lg">
       {/* Header */}
@@ -70,7 +91,7 @@ export default function AdminDashboardPage() {
               </p>
 
               <h2 className="mt-2 text-3xl font-bold text-[#00224A]">
-                1,248
+                {usersLoading ? "..." : usersError ? "0" : totalUsers}
               </h2>
             </div>
 
@@ -89,7 +110,11 @@ export default function AdminDashboardPage() {
               </p>
 
               <h2 className="mt-2 text-3xl font-bold text-[#00224A]">
-                186
+                {bookingsLoading
+                  ? "..."
+                  : bookingsError
+                    ? "0"
+                    : totalBookings}
               </h2>
             </div>
 
@@ -99,7 +124,7 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Revenue */}
+        {/* Revenue - KEEPING SAME */}
         <div className="rounded-xl border border-[#00224A]/10 bg-white p-5 shadow-sm transition-shadow hover:shadow-md sm:col-span-2 xl:col-span-1">
           <div className="flex items-start justify-between">
             <div>
@@ -166,60 +191,108 @@ export default function AdminDashboardPage() {
             </thead>
 
             <tbody>
-              {bookings.map((booking) => (
-                <tr
-                  key={booking.id}
-                  className="border-b border-[#00224A]/10 transition-colors last:border-b-0 hover:bg-[#EC620B]/5"
-                >
-                  {/* Booking */}
-                  <td className="px-5 py-4 text-sm font-semibold text-[#00224A]">
-                    {booking.id}
-                  </td>
-
-                  {/* Customer */}
-                  <td className="px-5 py-4 text-sm text-[#00224A]">
-                    {booking.customer}
-                  </td>
-
-                  {/* Technician */}
-                  <td className="px-5 py-4 text-sm text-[#00224A]">
-                    {booking.technician}
-                  </td>
-
-                  {/* Service */}
-                  <td className="px-5 py-4 text-sm text-[#00224A]">
-                    {booking.service}
-                  </td>
-
-                  {/* Date */}
-                  <td className="px-5 py-4 text-sm text-[#00224A]/60">
-                    {booking.date}
-                  </td>
-
-                  {/* Status */}
-                  <td className="px-5 py-4">
-                    <span
-                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
-                        booking.status === "COMPLETED"
-                          ? "bg-green-100 text-green-700"
-                          : booking.status === "IN_PROGRESS"
-                            ? "bg-[#EC620B]/10 text-[#EC620B]"
-                            : booking.status === "REQUESTED"
-                              ? "bg-[#EC620B] text-white"
-                              : booking.status === "PAID"
-                                ? "bg-[#00224A] text-white"
-                                : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {booking.status === "COMPLETED" && (
-                        <CheckCircle2 className="h-3 w-3" />
-                      )}
-
-                      {booking.status}
-                    </span>
+              {bookingsLoading ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-5 py-10 text-center text-sm text-[#00224A]/60"
+                  >
+                    Loading bookings...
                   </td>
                 </tr>
-              ))}
+              ) : bookingsError ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-5 py-10 text-center text-sm text-red-500"
+                  >
+                    Failed to load bookings.
+                  </td>
+                </tr>
+              ) : bookings.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-5 py-10 text-center text-sm text-[#00224A]/60"
+                  >
+                    No bookings found.
+                  </td>
+                </tr>
+              ) : (
+                bookings.map((booking: any) => (
+                  <tr
+                    key={booking.id}
+                    className="border-b border-[#00224A]/10 transition-colors last:border-b-0 hover:bg-[#EC620B]/5"
+                  >
+                    {/* Booking */}
+                    <td className="px-5 py-4 text-sm font-semibold text-[#00224A]">
+                      {booking.id}
+                    </td>
+
+                    {/* Customer */}
+                    <td className="px-5 py-4 text-sm text-[#00224A]">
+                      {booking.customer?.name ||
+                        booking.customer?.firstName ||
+                        booking.user?.name ||
+                        "N/A"}
+                    </td>
+
+                    {/* Technician */}
+                    <td className="px-5 py-4 text-sm text-[#00224A]">
+                      {booking.technician?.name ||
+                        booking.technician?.firstName ||
+                        "N/A"}
+                    </td>
+
+                    {/* Service */}
+                    <td className="px-5 py-4 text-sm text-[#00224A]">
+                      {booking.service?.name ||
+                        booking.serviceName ||
+                        "N/A"}
+                    </td>
+
+                    {/* Date */}
+                    <td className="px-5 py-4 text-sm text-[#00224A]/60">
+                      {booking.date ||
+                        booking.bookingDate ||
+                        booking.createdAt
+                        ? new Date(
+                            booking.date ||
+                              booking.bookingDate ||
+                              booking.createdAt
+                          ).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "2-digit",
+                            year: "numeric",
+                          })
+                        : "N/A"}
+                    </td>
+
+                    {/* Status */}
+                    <td className="px-5 py-4">
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
+                          booking.status === "COMPLETED"
+                            ? "bg-green-100 text-green-700"
+                            : booking.status === "IN_PROGRESS"
+                              ? "bg-[#EC620B]/10 text-[#EC620B]"
+                              : booking.status === "REQUESTED"
+                                ? "bg-[#EC620B] text-white"
+                                : booking.status === "PAID"
+                                  ? "bg-[#00224A] text-white"
+                                  : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {booking.status === "COMPLETED" && (
+                          <CheckCircle2 className="h-3 w-3" />
+                        )}
+
+                        {booking.status || "N/A"}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
