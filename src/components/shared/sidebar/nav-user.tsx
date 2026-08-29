@@ -1,61 +1,157 @@
 "use client";
-import AdminImg from "@/assets/icons/Ellipse.png";
-import AppSidebar from "@/components/shared/sidebar/app-sidebar";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
-import Image from "next/image";
-// import { useDecodedToken } from "@/hooks/useDecodedToken";
-// import { useAppSelector } from "@/redux/hooks";
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  // const token = useAppSelector((state) => state.auth.token);
-  // const decodedToken = useDecodedToken(token);
-  // const role = decodedToken?.role || "ADMIN";
+import { ChevronsUpDown, LogOut } from "lucide-react";
+import placeholder from "@/assets/placeholders/image_placeholder.png";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from "@/components/ui/sidebar";
+
+import { usePathname, useRouter } from "next/navigation";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { useGetMeQuery } from "@/redux/api/authApi";
+import { logout } from "@/redux/features/authSlice";
+import Image from "next/image";
+
+export function NavUser() {
+  const { isMobile } = useSidebar();
+  const token = useAppSelector((state) => state.auth.token);
+  const dispatch = useAppDispatch();
+
+  const { data, error, isLoading } = useGetMeQuery(undefined, { skip: !token });
+
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const handleLogout = async () => {
+    dispatch(logout());
+    router.push("/login?redirect=" + pathname);
+  };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton size="lg" disabled>
+            <Avatar className="h-8 w-8 rounded-lg">
+              <AvatarFallback className="rounded-lg">...</AvatarFallback>
+            </Avatar>
+            <div className="grid flex-1 text-left text-sm leading-tight">
+              <span className="truncate font-semibold">Loading...</span>
+            </div>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton size="lg" disabled>
+            <Avatar className="h-8 w-8 rounded-lg">
+              <AvatarFallback className="rounded-lg">!</AvatarFallback>
+            </Avatar>
+            <div className="grid flex-1 text-left text-sm leading-tight">
+              <span className="truncate font-semibold text-red-500">Error</span>
+            </div>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    );
+  }
 
   return (
-    <SidebarProvider>
-      {/* Pass the user role dynamically to AppSidebar */}
-      {/* <AppSidebar role={role} /> */}
-      <AppSidebar role="admin" />
-      <SidebarInset>
-        <header
-          className="flex justify-between items-center gap-2 
-                 h-20 shrink-0 px-4 lg:px-8 
-                 sticky top-0 z-50 bg-white shadow-xs
-                 transition-[width,height] ease-linear
-                 group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12"
-        >
-          <div className="flex items-center gap-2 px-4">
-            <SidebarTrigger className="-ml-1" />
-          </div>
-
-          {/* Right Section: Profile */}
-          <div className="flex flex-col lg:flex-row gap-5 lg:pr-8">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center  text-primary rounded-full">
-                <Image
-                  src={AdminImg}
-                  alt="user"
-                  width={500}
-                  height={500}
-                  className="w-[39px] h-[39px] rounded-full object-cover"
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuButton
+              size="lg"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            >
+              <Avatar className="h-8 w-8 rounded-lg">
+                <AvatarImage
+                  src={data?.data?.transformedResult?.profileImg || placeholder}
+                  alt={data?.data?.transformedResult?.firstName ?? "User"}
+                  className="h-8 w-8 object-cover rounded-lg"
                 />
-                {/* <h1 className="text-primary lg:text-sm text-xs font-medium">
-                  name
-                </h1> */}
+                <AvatarFallback className="rounded-lg">
+                  <Image
+                    src={data?.data?.image || placeholder}
+                    alt={data?.data?.firstName ?? "User"}
+                    width={60}
+                    height={60}
+                    className="h-8 w-8 object-cover rounded-lg"
+                  />
+                </AvatarFallback>
+              </Avatar>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-semibold">
+                  {data?.data?.transformedResult?.firstName || "User"}
+                </span>
+                <span className="truncate text-xs">
+                  {data?.data?.transformedResult?.email || "No email"}
+                </span>
               </div>
-            </div>
-          </div>
-        </header>
-        <div className="p-4 pt-0 bg-white min-h-screen">{children}</div>
-      </SidebarInset>
-    </SidebarProvider>
+              <ChevronsUpDown className="ml-auto size-4" />
+            </SidebarMenuButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+            side={isMobile ? "bottom" : "right"}
+            align="end"
+            sideOffset={4}
+          >
+            <DropdownMenuLabel className="p-0 font-normal">
+              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                <Avatar className="h-8 w-8 rounded-lg">
+                  <AvatarImage
+                    src={data?.data?.transformedResult?.profileImg || placeholder.src}
+                    alt={data?.data?.transformedResult?.firstName  ?? "User"}
+                    className="h-8 w-8 object-cover rounded-lg"
+                  />
+                  <AvatarFallback className="rounded-lg">
+                    <Image
+                      src={data?.data?.image || placeholder}
+                      alt={data?.data?.firstName ?? "User"}
+                      width={60}
+                      height={60}
+                      className="h-8 w-8 object-cover rounded-lg"
+                    />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-semibold">
+                    {data?.data?.transformedResult?.firstName  || "User"}
+                  </span>
+                  <span className="truncate text-xs">
+                    {data?.data?.transformedResult?.email || "No email"}
+                  </span>
+                </div>
+              </div>
+            </DropdownMenuLabel>
+
+            <DropdownMenuItem onClick={handleLogout}>
+              <LogOut />
+              Log out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarMenuItem>
+    </SidebarMenu>
   );
 }

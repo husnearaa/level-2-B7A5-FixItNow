@@ -1,31 +1,38 @@
 "use client";
-import AdminImg from "@/assets/logo.png";
+
 import AppSidebar from "@/components/shared/sidebar/app-sidebar";
+
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import Image from "next/image";
-// import { useDecodedToken } from "@/hooks/useDecodedToken";
-// import { useAppSelector } from "@/redux/hooks";
+
+import { useDecodedToken } from "@/hooks/useDecodedToken";
+import { useAppSelector } from "@/redux/hooks";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // const token = useAppSelector((state) => state.auth.token);
-  // const decodedToken = useDecodedToken(token);
-  // const role = decodedToken?.role || "ADMIN";
+  const token = useAppSelector((state) => state.auth.token);
+
+  const decodedToken = useDecodedToken(token);
+
+  // Get the user's role dynamically from the JWT token
+  const role =
+    typeof decodedToken?.role === "string"
+      ? decodedToken.role
+      : typeof decodedToken?.activeRole === "string"
+        ? decodedToken.activeRole
+        : "CUSTOMER";
 
   return (
     <SidebarProvider>
-      {/* Pass the user role dynamically to AppSidebar */}
-      {/* <AppSidebar role={role} /> */}
-      <AppSidebar role="admin" />
-     {/* <AppSidebar role="customer" /> */}
-      {/* <AppSidebar role="technician" /> */}
+      {/* Pass the user's actual role dynamically */}
+      <AppSidebar role={role} />
+
       <SidebarInset>
         <header
           className="flex justify-between items-center gap-2 
@@ -41,22 +48,16 @@ export default function DashboardLayout({
           {/* Right Section: Profile */}
           <div className="flex flex-col lg:flex-row gap-5 lg:pr-8">
             <div className="flex items-center gap-3">
-              <div className="flex items-center  text-primary rounded-full">
-                {/* <Image
-                  src={AdminImg}
-                  alt="user"
-                  width={500}
-                  height={500}
-                  className="w-[39px] h-[39px] rounded-full object-cover"
-                /> */}
-                {/* <h1 className="text-primary lg:text-sm text-xs font-medium">
-                  name
-                </h1> */}
+              <div className="flex items-center text-primary rounded-full">
+                {/* Profile content */}
               </div>
             </div>
           </div>
         </header>
-        <div className="p-4 pt-0 bg-slate-100 min-h-screen">{children}</div>
+
+        <div className="p-4 pt-0 bg-slate-100 min-h-screen">
+          {children}
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );
