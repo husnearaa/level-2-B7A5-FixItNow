@@ -10,64 +10,22 @@ import {
   XCircle,
 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
+
+import {
+  useGetAllCategoriesQuery,
+  useCreateCategoryMutation,
+} from "@/redux/api/categoriesApi.ts";
 
 type Category = {
-  id: number;
+  id: string | number;
   name: string;
   description: string;
-  services: number;
-  status: "Active" | "Inactive";
+  isActive: boolean;
+  services?: unknown[];
 };
 
-const initialCategories: Category[] = [
-  {
-    id: 1,
-    name: "Home Cleaning",
-    description: "Professional cleaning services for your home.",
-    services: 18,
-    status: "Active",
-  },
-  {
-    id: 2,
-    name: "Plumbing",
-    description: "Reliable plumbing installation and repair services.",
-    services: 12,
-    status: "Active",
-  },
-  {
-    id: 3,
-    name: "Electrical",
-    description: "Electrical installation, maintenance and repair.",
-    services: 15,
-    status: "Active",
-  },
-  {
-    id: 4,
-    name: "AC Repair",
-    description: "Air conditioner servicing and repair.",
-    services: 9,
-    status: "Active",
-  },
-  {
-    id: 5,
-    name: "Painting",
-    description: "Interior and exterior home painting services.",
-    services: 7,
-    status: "Inactive",
-  },
-  {
-    id: 6,
-    name: "Carpentry",
-    description: "Furniture, doors and general carpentry services.",
-    services: 11,
-    status: "Active",
-  },
-];
-
 export default function CategoryManagement() {
-  const [categories, setCategories] =
-    useState<Category[]>(initialCategories);
-
   const [search, setSearch] = useState("");
 
   const [showModal, setShowModal] = useState(false);
@@ -76,18 +34,50 @@ export default function CategoryManagement() {
     useState<Category | null>(null);
 
   const [categoryName, setCategoryName] = useState("");
-
   const [description, setDescription] = useState("");
+
+  // =========================
+  // Get all categories
+  // =========================
+
+  const {
+    data: categoryResponse,
+    isLoading,
+    isError,
+    refetch,
+  } = useGetAllCategoriesQuery({});
+
+  // =========================
+  // Create category
+  // =========================
+
+  const [createCategory, { isLoading: isCreating }] =
+    useCreateCategoryMutation();
+
+  // =========================
+  // Extract categories
+  // =========================
+
+  const categories: Category[] =
+    categoryResponse?.data || [];
+
+  // =========================
+  // Search
+  // =========================
 
   const filteredCategories = categories.filter(
     (category) =>
       category.name
-        .toLowerCase()
+        ?.toLowerCase()
         .includes(search.toLowerCase()) ||
       category.description
-        .toLowerCase()
+        ?.toLowerCase()
         .includes(search.toLowerCase()),
   );
+
+  // =========================
+  // Add category modal
+  // =========================
 
   const openAddModal = () => {
     setEditingCategory(null);
@@ -96,6 +86,10 @@ export default function CategoryManagement() {
     setShowModal(true);
   };
 
+  // =========================
+  // Edit modal
+  // =========================
+
   const openEditModal = (category: Category) => {
     setEditingCategory(category);
     setCategoryName(category.name);
@@ -103,73 +97,138 @@ export default function CategoryManagement() {
     setShowModal(true);
   };
 
-  const handleSave = () => {
-    if (!categoryName.trim()) return;
+  // =========================
+  // Save category
+  // =========================
 
-    if (editingCategory) {
-      setCategories((current) =>
-        current.map((category) =>
-          category.id === editingCategory.id
-            ? {
-                ...category,
-                name: categoryName,
-                description,
-              }
-            : category,
-        ),
-      );
-    } else {
-      const newCategory: Category = {
-        id: Date.now(),
-        name: categoryName,
-        description,
-        services: 0,
-        status: "Active",
-      };
-
-      setCategories((current) => [...current, newCategory]);
+  const handleSave = async () => {
+    if (!categoryName.trim()) {
+      toast.error("Category name is required.");
+      return;
     }
 
-    setShowModal(false);
-    setCategoryName("");
-    setDescription("");
-    setEditingCategory(null);
+    if (editingCategory) {
+      toast.info(
+        "Edit category API is not connected yet.",
+      );
+      return;
+    }
+
+    try {
+      const response = await createCategory({
+        name: categoryName.trim(),
+        description: description.trim(),
+      }).unwrap();
+
+      if (!response?.success) {
+        toast.error(
+          response?.message || "Failed to create category.",
+        );
+        return;
+      }
+
+      toast.success("Category created successfully.");
+
+      setShowModal(false);
+      setCategoryName("");
+      setDescription("");
+      setEditingCategory(null);
+
+      // RTK Query invalidates Category automatically,
+      // so the category list will refresh.
+      refetch();
+    } catch (error) {
+      console.error("Create category error:", error);
+
+      toast.error(
+        "Failed to create category. Please try again.",
+      );
+    }
   };
 
-  const handleDelete = (id: number) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this category?",
+  // =========================
+  // Delete
+  // =========================
+
+  const handleDelete = (id: string | number) => {
+    console.log("Delete category:", id);
+
+    toast.info(
+      "Delete category API is not connected yet.",
     );
+  };
 
-    if (!confirmed) return;
+  // =========================
+  // Status toggle
+  // =========================
 
-    setCategories((current) =>
-      current.filter((category) => category.id !== id),
+  const handleStatusToggle = (
+    id: string | number,
+  ) => {
+    console.log("Toggle category status:", id);
+
+    toast.info(
+      "Category status API is not connected yet.",
     );
   };
 
-  const handleStatusToggle = (id: number) => {
-    setCategories((current) =>
-      current.map((category) =>
-        category.id === id
-          ? {
-              ...category,
-              status:
-                category.status === "Active"
-                  ? "Inactive"
-                  : "Active",
-            }
-          : category,
-      ),
+  // =========================
+  // Loading state
+  // =========================
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FA] px-4 py-6 md:px-6 lg:px-8 m-6 rounded-lg">
+        <div className="flex min-h-[400px] items-center justify-center">
+          <div className="text-center">
+            <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-[#EC620B]/20 border-t-[#EC620B]" />
+
+            <p className="text-sm font-medium text-[#00224A]">
+              Loading categories...
+            </p>
+          </div>
+        </div>
+      </div>
     );
-  };
+  }
+
+  // =========================
+  // Error state
+  // =========================
+
+  if (isError) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FA] px-4 py-6 md:px-6 lg:px-8 m-6 rounded-lg">
+        <div className="flex min-h-[400px] items-center justify-center">
+          <div className="text-center">
+            <p className="mb-4 text-sm text-red-500">
+              Failed to load categories.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="rounded-lg bg-[#EC620B] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#EC620B]/90"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // =========================
+  // Main UI
+  // =========================
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] px-4 py-6 md:px-6 lg:px-8 m-6 rounded-lg">
+
       {/* Header */}
       <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <h1 className=" text-2xl lg:text-3xl font-semibold text-[#00224A] md:text-3xl">
+          <h1 className="text-2xl lg:text-3xl font-semibold text-[#00224A] md:text-3xl">
             Category Management
           </h1>
 
@@ -190,6 +249,7 @@ export default function CategoryManagement() {
 
       {/* Main Card */}
       <div className="overflow-hidden rounded-xl border border-[#00224A]/10 bg-white shadow-sm">
+
         {/* Card Header */}
         <div className="flex flex-col justify-between gap-4 border-b border-[#00224A]/10 p-5 md:flex-row md:items-center">
           <div>
@@ -219,8 +279,10 @@ export default function CategoryManagement() {
         {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full min-w-[850px]">
+
             <thead>
               <tr className="border-b border-[#00224A]/10 bg-[#00224A]/5">
+
                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#00224A]">
                   Category
                 </th>
@@ -240,104 +302,134 @@ export default function CategoryManagement() {
                 <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[#00224A]">
                   Actions
                 </th>
+
               </tr>
             </thead>
 
             <tbody>
-              {filteredCategories.map((category) => (
-                <tr
-                  key={category.id}
-                  className="border-b border-[#00224A]/10 transition-colors last:border-b-0 hover:bg-[#EC620B]/5"
-                >
-                  {/* Category */}
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#EC620B]">
-                        <Wrench className="h-5 w-5 text-white" />
+
+              {filteredCategories.map((category) => {
+
+                const status = category.isActive
+                  ? "Active"
+                  : "Inactive";
+
+                const serviceCount = Array.isArray(
+                  category.services,
+                )
+                  ? category.services.length
+                  : 0;
+
+                return (
+                  <tr
+                    key={category.id}
+                    className="border-b border-[#00224A]/10 transition-colors last:border-b-0 hover:bg-[#EC620B]/5"
+                  >
+
+                    {/* Category */}
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#EC620B]">
+                          <Wrench className="h-5 w-5 text-white" />
+                        </div>
+
+                        <div>
+                          <p className="font-semibold text-[#00224A]">
+                            {category.name}
+                          </p>
+
+                          <p className="text-xs text-black/40">
+                            ID: {String(category.id)}
+                          </p>
+                        </div>
+
                       </div>
+                    </td>
 
-                      <div>
-                        <p className="font-semibold text-[#00224A]">
-                          {category.name}
-                        </p>
+                    {/* Description */}
+                    <td className="max-w-xs px-5 py-4">
+                      <p className="truncate text-sm text-black/70">
+                        {category.description || "No description"}
+                      </p>
+                    </td>
 
-                        <p className="text-xs text-black/40">
-                          ID: CAT-{String(category.id).padStart(3, "0")}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
+                    {/* Services */}
+                    <td className="px-5 py-4">
 
-                  {/* Description */}
-                  <td className="max-w-xs px-5 py-4">
-                    <p className="truncate text-sm text-black/70">
-                      {category.description}
-                    </p>
-                  </td>
+                      <span className="text-sm font-semibold text-[#00224A]">
+                        {serviceCount}
+                      </span>
 
-                  {/* Services */}
-                  <td className="px-5 py-4">
-                    <span className="text-sm font-semibold text-[#00224A]">
-                      {category.services}
-                    </span>
+                      <span className="ml-1 text-xs text-black/50">
+                        services
+                      </span>
 
-                    <span className="ml-1 text-xs text-black/50">
-                      services
-                    </span>
-                  </td>
+                    </td>
 
-                  {/* Status */}
-                  <td className="px-5 py-4">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleStatusToggle(category.id)
-                      }
-                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
-                        category.status === "Active"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {category.status === "Active" ? (
-                        <CheckCircle2 className="h-3 w-3" />
-                      ) : (
-                        <XCircle className="h-3 w-3" />
-                      )}
-
-                      {category.status}
-                    </button>
-                  </td>
-
-                  {/* Actions */}
-                  <td className="px-5 py-4">
-                    <div className="flex justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          openEditModal(category)
-                        }
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-[#00224A]/15 bg-white px-3 py-2 text-xs font-semibold text-[#00224A] transition-colors hover:border-[#EC620B] hover:text-[#EC620B]"
-                      >
-                        <Edit className="h-3.5 w-3.5" />
-                        Edit
-                      </button>
+                    {/* Status */}
+                    <td className="px-5 py-4">
 
                       <button
                         type="button"
                         onClick={() =>
-                          handleDelete(category.id)
+                          handleStatusToggle(category.id)
                         }
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-red-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-red-600"
+                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
+                          category.isActive
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
 
+                        {category.isActive ? (
+                          <CheckCircle2 className="h-3 w-3" />
+                        ) : (
+                          <XCircle className="h-3 w-3" />
+                        )}
+
+                        {status}
+
+                      </button>
+
+                    </td>
+
+                    {/* Actions */}
+                    <td className="px-5 py-4">
+
+                      <div className="flex justify-end gap-2">
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            openEditModal(category)
+                          }
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-[#00224A]/15 bg-white px-3 py-2 text-xs font-semibold text-[#00224A] transition-colors hover:border-[#EC620B] hover:text-[#EC620B]"
+                        >
+                          <Edit className="h-3.5 w-3.5" />
+                          Edit
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleDelete(category.id)
+                          }
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-red-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-red-600"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Delete
+                        </button>
+
+                      </div>
+
+                    </td>
+
+                  </tr>
+                );
+              })}
+
+              {/* Empty State */}
               {filteredCategories.length === 0 && (
                 <tr>
                   <td
@@ -345,6 +437,7 @@ export default function CategoryManagement() {
                     className="px-5 py-12 text-center"
                   >
                     <div className="flex flex-col items-center">
+
                       <Search className="mb-3 h-8 w-8 text-black/20" />
 
                       <p className="font-medium text-[#00224A]">
@@ -354,16 +447,19 @@ export default function CategoryManagement() {
                       <p className="mt-1 text-sm text-black/50">
                         Try searching with a different keyword.
                       </p>
+
                     </div>
                   </td>
                 </tr>
               )}
+
             </tbody>
           </table>
         </div>
 
         {/* Footer */}
         <div className="flex flex-col gap-3 border-t border-[#00224A]/10 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+
           <p className="text-sm text-black/50">
             Showing{" "}
             <span className="font-semibold text-[#00224A]">
@@ -377,36 +473,44 @@ export default function CategoryManagement() {
           </p>
 
           <div className="flex items-center gap-2">
+
             <span className="h-2 w-2 rounded-full bg-green-500" />
+
             <span className="text-sm text-black/60">
               Active:{" "}
               {
                 categories.filter(
-                  (category) => category.status === "Active",
+                  (category) => category.isActive,
                 ).length
               }
             </span>
 
             <span className="ml-3 h-2 w-2 rounded-full bg-red-500" />
+
             <span className="text-sm text-black/60">
               Inactive:{" "}
               {
                 categories.filter(
-                  (category) =>
-                    category.status === "Inactive",
+                  (category) => !category.isActive,
                 ).length
               }
             </span>
+
           </div>
+
         </div>
+
       </div>
 
       {/* Add / Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+
           <div className="w-full max-w-md rounded-xl bg-[#FFF8F4] p-6 shadow-xl">
+
             {/* Modal Header */}
             <div className="mb-5">
+
               <h2 className="text-xl font-bold text-[#00224A]">
                 {editingCategory
                   ? "Edit Category"
@@ -418,10 +522,12 @@ export default function CategoryManagement() {
                   ? "Update the category information."
                   : "Create a new service category."}
               </p>
+
             </div>
 
             {/* Category Name */}
             <div className="mb-4">
+
               <label className="mb-2 block text-sm font-semibold text-[#00224A]">
                 Category Name
               </label>
@@ -435,10 +541,12 @@ export default function CategoryManagement() {
                 placeholder="e.g. Home Cleaning"
                 className="w-full rounded-lg border border-[#00224A]/15 bg-white px-3 py-2.5 text-sm text-black outline-none placeholder:text-black/40 focus:border-[#EC620B] focus:ring-1 focus:ring-[#EC620B]/20"
               />
+
             </div>
 
             {/* Description */}
             <div className="mb-6">
+
               <label className="mb-2 block text-sm font-semibold text-[#00224A]">
                 Description
               </label>
@@ -452,13 +560,20 @@ export default function CategoryManagement() {
                 rows={4}
                 className="w-full resize-none rounded-lg border border-[#00224A]/15 bg-white px-3 py-2.5 text-sm text-black outline-none placeholder:text-black/40 focus:border-[#EC620B] focus:ring-1 focus:ring-[#EC620B]/20"
               />
+
             </div>
 
             {/* Modal Actions */}
             <div className="flex justify-end gap-3">
+
               <button
                 type="button"
-                onClick={() => setShowModal(false)}
+                onClick={() => {
+                  setShowModal(false);
+                  setEditingCategory(null);
+                  setCategoryName("");
+                  setDescription("");
+                }}
                 className="rounded-lg border border-[#00224A]/15 bg-white px-4 py-2.5 text-sm font-semibold text-[#00224A] transition-colors hover:bg-[#00224A]/5"
               >
                 Cancel
@@ -467,14 +582,24 @@ export default function CategoryManagement() {
               <button
                 type="button"
                 onClick={handleSave}
-                className="rounded-lg bg-[#EC620B] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#EC620B]/90"
+                disabled={isCreating}
+                className="rounded-lg bg-[#EC620B] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#EC620B]/90 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {editingCategory ? "Update" : "Add Category"}
+                {isCreating
+                  ? "Saving..."
+                  : editingCategory
+                    ? "Update"
+                    : "Add Category"}
               </button>
+
             </div>
+
           </div>
+
         </div>
       )}
+
     </div>
   );
 }
+
