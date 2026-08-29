@@ -2,219 +2,169 @@
 
 import { Ban, CheckCircle2, Search } from "lucide-react";
 import { useEffect, useState } from "react";
-
-const users = [
-  {
-    id: 1,
-    name: "Sarah Ahmed",
-    email: "sarah@example.com",
-    role: "Customer",
-    status: "Active",
-  },
-  {
-    id: 2,
-    name: "James Wilson",
-    email: "james@example.com",
-    role: "Technician",
-    status: "Active",
-  },
-  {
-    id: 3,
-    name: "Maria Khan",
-    email: "maria@example.com",
-    role: "Customer",
-    status: "Banned",
-  },
-  {
-    id: 4,
-    name: "David Smith",
-    email: "david@example.com",
-    role: "Technician",
-    status: "Active",
-  },
-  {
-    id: 5,
-    name: "Emily Johnson",
-    email: "emily@example.com",
-    role: "Customer",
-    status: "Active",
-  },
-  {
-    id: 6,
-    name: "Michael Brown",
-    email: "michael@example.com",
-    role: "Customer",
-    status: "Active",
-  },
-  {
-    id: 7,
-    name: "Robert Lee",
-    email: "robert@example.com",
-    role: "Technician",
-    status: "Active",
-  },
-  {
-    id: 8,
-    name: "Sophia Williams",
-    email: "sophia@example.com",
-    role: "Customer",
-    status: "Banned",
-  },
-  {
-    id: 9,
-    name: "Daniel Taylor",
-    email: "daniel@example.com",
-    role: "Technician",
-    status: "Active",
-  },
-  {
-    id: 10,
-    name: "Olivia Martin",
-    email: "olivia@example.com",
-    role: "Customer",
-    status: "Active",
-  },
-  {
-    id: 11,
-    name: "William Anderson",
-    email: "william@example.com",
-    role: "Technician",
-    status: "Active",
-  },
-  {
-    id: 12,
-    name: "Emma Thomas",
-    email: "emma@example.com",
-    role: "Customer",
-    status: "Active",
-  },
-  {
-    id: 13,
-    name: "Benjamin Jackson",
-    email: "benjamin@example.com",
-    role: "Technician",
-    status: "Banned",
-  },
-  {
-    id: 14,
-    name: "Ava White",
-    email: "ava@example.com",
-    role: "Customer",
-    status: "Active",
-  },
-  {
-    id: 15,
-    name: "Henry Harris",
-    email: "henry@example.com",
-    role: "Technician",
-    status: "Active",
-  },
-  {
-    id: 16,
-    name: "Isabella Clark",
-    email: "isabella@example.com",
-    role: "Customer",
-    status: "Active",
-  },
-  {
-    id: 17,
-    name: "Lucas Lewis",
-    email: "lucas@example.com",
-    role: "Technician",
-    status: "Active",
-  },
-  {
-    id: 18,
-    name: "Mia Walker",
-    email: "mia@example.com",
-    role: "Customer",
-    status: "Banned",
-  },
-  {
-    id: 19,
-    name: "Alexander Hall",
-    email: "alexander@example.com",
-    role: "Technician",
-    status: "Active",
-  },
-  {
-    id: 20,
-    name: "Charlotte Allen",
-    email: "charlotte@example.com",
-    role: "Customer",
-    status: "Active",
-  },
-];
+import { useGetAllUserQuery, useUpdateUserStatusMutation} from "@/redux/api/userApi";
 
 const ITEMS_PER_PAGE = 5;
 
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  isActive: boolean;
+}
+
 const UserManagement = () => {
   const [search, setSearch] = useState("");
-  const [userList, setUserList] = useState(users);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Search users
-  const filteredUsers = userList.filter(
-    (user) =>
-      user.name.toLowerCase().includes(search.toLowerCase()) ||
-      user.email.toLowerCase().includes(search.toLowerCase()),
+  // =========================
+  // Get all users
+  // =========================
+  const {
+    data: usersResponse,
+    isLoading,
+    isFetching,
+    error,
+  } = useGetAllUserQuery({});
+
+  // =========================
+  // Update user status
+  // =========================
+  const [updateUserStatus, { isLoading: isUpdating }] =
+    useUpdateUserStatusMutation();
+
+  // =========================
+  // Normalize API response
+  // =========================
+  const users: User[] =
+    usersResponse?.data?.data ||
+    usersResponse?.data?.result ||
+    usersResponse?.data ||
+    [];
+
+  // =========================
+  // Search
+  // =========================
+  const filteredUsers = users.filter((user) => {
+    const searchValue = search.toLowerCase();
+
+    return (
+      user.name?.toLowerCase().includes(searchValue) ||
+      user.email?.toLowerCase().includes(searchValue) ||
+      user.role?.toLowerCase().includes(searchValue)
+    );
+  });
+
+  // =========================
+  // Pagination
+  // =========================
+  const totalPages = Math.ceil(
+    filteredUsers.length / ITEMS_PER_PAGE
   );
 
-  // Total pages
-  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
-
-  // Current page users
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
 
-  const currentUsers = filteredUsers.slice(startIndex, endIndex);
+  const currentUsers = filteredUsers.slice(
+    startIndex,
+    endIndex
+  );
 
-  // Reset page when search changes
+  // =========================
+  // Reset page when searching
+  // =========================
   useEffect(() => {
     setCurrentPage(1);
   }, [search]);
 
-  // Make sure current page remains valid
+  // =========================
+  // Keep current page valid
+  // =========================
   useEffect(() => {
     if (totalPages > 0 && currentPage > totalPages) {
       setCurrentPage(totalPages);
     }
+
+    if (totalPages === 0 && currentPage !== 1) {
+      setCurrentPage(1);
+    }
   }, [currentPage, totalPages]);
 
-  // Ban / Unban
-  const handleBanToggle = (id: number) => {
-    setUserList((currentUsers) =>
-      currentUsers.map((user) =>
-        user.id === id
-          ? {
-              ...user,
-              status: user.status === "Banned" ? "Active" : "Banned",
-            }
-          : user,
-      ),
-    );
+  // =========================
+  // Ban / Unban user
+  // =========================
+  const handleBanToggle = async (user: User) => {
+    try {
+      await updateUserStatus({
+        id: user.id,
+        data: {
+          isActive: !user.isActive,
+        },
+      }).unwrap();
+
+      // No need to manually update state.
+      // RTK Query will refetch because
+      // updateUserStatus invalidates "UserData".
+    } catch (error) {
+      console.error("Failed to update user status:", error);
+    }
   };
 
+  // =========================
   // Previous page
+  // =========================
   const handlePrevious = () => {
     if (currentPage > 1) {
       setCurrentPage((page) => page - 1);
     }
   };
 
+  // =========================
   // Next page
+  // =========================
   const handleNext = () => {
     if (currentPage < totalPages) {
       setCurrentPage((page) => page + 1);
     }
   };
 
+  // =========================
+  // Loading
+  // =========================
+  if (isLoading) {
+    return (
+      <div className="m-10 mb-8 rounded-lg border border-[#00224A]/10 bg-white py-8 px-2 shadow-sm">
+        <div className="flex min-h-[300px] items-center justify-center">
+          <p className="text-sm font-medium text-[#00224A]">
+            Loading users...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // =========================
+  // Error
+  // =========================
+  if (error) {
+    return (
+      <div className="m-10 mb-8 rounded-lg border border-[#00224A]/10 bg-white py-8 px-2 shadow-sm">
+        <div className="flex min-h-[300px] items-center justify-center">
+          <p className="text-sm font-medium text-red-500">
+            Failed to load users.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="m-10 mb-8 rounded-lg border border-[#00224A]/10 bg-white py-8 px-2 shadow-sm">
       {/* Header */}
       <div className="flex flex-col justify-between gap-4 border-b border-[#00224A]/10 p-5 md:flex-row md:items-center">
         <div>
-          <h2 className="text-2xl md:text-3xl font-semibold text-[#00224A]">
+          <h2 className="text-2xl font-semibold text-[#00224A] md:text-3xl">
             User Management
           </h2>
 
@@ -236,6 +186,13 @@ const UserManagement = () => {
           />
         </div>
       </div>
+
+      {/* Refetching indicator */}
+      {isFetching && !isLoading && (
+        <div className="px-5 pt-3 text-xs text-[#EC620B]">
+          Updating users...
+        </div>
+      )}
 
       {/* Table */}
       <div className="overflow-x-auto">
@@ -270,7 +227,7 @@ const UserManagement = () => {
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#00224A] text-sm font-bold text-white">
-                      {user.name.charAt(0)}
+                      {user.name?.charAt(0)?.toUpperCase() || "U"}
                     </div>
 
                     <div>
@@ -296,18 +253,18 @@ const UserManagement = () => {
                 <td className="px-5 py-4">
                   <span
                     className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
-                      user.status === "Active"
+                      user.isActive
                         ? "bg-green-100 text-green-700"
                         : "bg-red-100 text-red-700"
                     }`}
                   >
-                    {user.status === "Active" ? (
+                    {user.isActive ? (
                       <CheckCircle2 className="h-3 w-3" />
                     ) : (
                       <Ban className="h-3 w-3" />
                     )}
 
-                    {user.status}
+                    {user.isActive ? "Active" : "Banned"}
                   </span>
                 </td>
 
@@ -315,14 +272,15 @@ const UserManagement = () => {
                 <td className="px-5 py-4 text-right">
                   <button
                     type="button"
-                    onClick={() => handleBanToggle(user.id)}
-                    className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-white transition-colors ${
-                      user.status === "Active"
+                    disabled={isUpdating}
+                    onClick={() => handleBanToggle(user)}
+                    className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                      user.isActive
                         ? "bg-red-500 hover:bg-red-600"
                         : "bg-green-600 hover:bg-green-700"
                     }`}
                   >
-                    {user.status === "Active" ? "Ban User" : "Unban User"}
+                    {user.isActive ? "Ban User" : "Unban User"}
                   </button>
                 </td>
               </tr>
@@ -335,7 +293,9 @@ const UserManagement = () => {
                   colSpan={4}
                   className="px-5 py-10 text-center text-sm text-[#00224A]/50"
                 >
-                  No users found.
+                  {search
+                    ? "No users found matching your search."
+                    : "No users found."}
                 </td>
               </tr>
             )}
@@ -350,7 +310,7 @@ const UserManagement = () => {
           {filteredUsers.length > 0
             ? `Showing ${startIndex + 1}–${Math.min(
                 endIndex,
-                filteredUsers.length,
+                filteredUsers.length
               )} of ${filteredUsers.length} users`
             : "Showing 0 users"}
         </p>
@@ -374,24 +334,27 @@ const UserManagement = () => {
 
             {/* Page Numbers */}
             <div className="flex items-center gap-1">
-              {Array.from({ length: totalPages }, (_, index) => {
-                const pageNumber = index + 1;
+              {Array.from(
+                { length: totalPages },
+                (_, index) => {
+                  const pageNumber = index + 1;
 
-                return (
-                  <button
-                    key={pageNumber}
-                    type="button"
-                    onClick={() => setCurrentPage(pageNumber)}
-                    className={`h-9 min-w-9 rounded-lg px-3 text-sm font-medium transition-colors ${
-                      currentPage === pageNumber
-                        ? "bg-[#EC620B] text-white"
-                        : "border border-[#00224A]/15 text-[#00224A] hover:border-[#EC620B] hover:bg-[#EC620B]/5 hover:text-[#EC620B]"
-                    }`}
-                  >
-                    {pageNumber}
-                  </button>
-                );
-              })}
+                  return (
+                    <button
+                      key={pageNumber}
+                      type="button"
+                      onClick={() => setCurrentPage(pageNumber)}
+                      className={`h-9 min-w-9 rounded-lg px-3 text-sm font-medium transition-colors ${
+                        currentPage === pageNumber
+                          ? "bg-[#EC620B] text-white"
+                          : "border border-[#00224A]/15 text-[#00224A] hover:border-[#EC620B] hover:bg-[#EC620B]/5 hover:text-[#EC620B]"
+                      }`}
+                    >
+                      {pageNumber}
+                    </button>
+                  );
+                }
+              )}
             </div>
 
             {/* Next */}

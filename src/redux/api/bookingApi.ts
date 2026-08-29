@@ -12,23 +12,7 @@ export const BookingsApi = baseApi.injectEndpoints({
       providesTags: ["Bookings"],
     }),
 
-    // getCompanyAllJob: builder.query({
-    //   query: (id) => ({
-    //     url: `/admin/company-all-jobs/${id}`,
-    //     method: "GET",
-    //   }),
-    //   providesTags: ["Bookings"],
-    // }),
-
-    // getAllSkills: builder.query({
-    //   query: (params) => ({
-    //     url: "/skill",
-    //     method: "GET",
-    //     params: { ...params },
-    //   }),
-    //   providesTags: ["Bookings"],
-    // }),
-
+ 
     // getSingleJobById: builder.query({
     //   query: (id) => ({
     //     url: `/admin/single-job/${id}`,
