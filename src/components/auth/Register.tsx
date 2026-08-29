@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import Image from "next/image";
@@ -8,7 +9,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { toast } from "sonner";
-
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Logo from "@/assets/logo.png";
@@ -55,8 +56,8 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
   const [registerUser, { isLoading }] = useRegisterMutation();
+    const router = useRouter();
 
   const {
     register,
@@ -89,10 +90,23 @@ const Register = () => {
 
       toast.success("Registration successful!");
       reset();
-    } catch (error) {
-      console.error("Registration error:", error);
-      toast.error("Something went wrong. Please try again.");
-    }
+       router.push("/login");
+    // } catch (error) {
+    //   console.error("Registration error:", error);
+    //   toast.error("Something went wrong. Please try again.");
+    // }
+    } catch (error: any) {
+  console.error("Registration error:", error);
+
+  console.log("Error data:", error?.data);
+  console.log("Error message:", error?.data?.message);
+
+  toast.error(
+    error?.data?.message ||
+      error?.message ||
+      "Something went wrong. Please try again."
+  );
+}
   };
 
   return (
@@ -331,7 +345,7 @@ const Register = () => {
             <p className="pt-2 text-center text-sm text-slate-500">
               Already have an account?{" "}
               <Link
-                href="/auth/login"
+                href="/login"
                 className="font-semibold text-[#EC620B] transition hover:underline"
               >
                 Log in
