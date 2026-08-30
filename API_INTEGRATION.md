@@ -76,3 +76,7 @@ https://level-2-b7-a4.vercel.app/booking/${id}/status
 <!-- cancel booking -->
 https://level-2-b7-a4.vercel.app/booking/${id}/cancel
 
+
+<!-- service -->
+
+

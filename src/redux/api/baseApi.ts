@@ -206,7 +206,7 @@ export const baseApi = createApi({
     "Category",
     "Technician",
     "Availability",
-    
+    "Service",  
   ],
   endpoints: () => ({}),
 });

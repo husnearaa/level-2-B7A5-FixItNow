@@ -2,7 +2,7 @@ import { baseApi } from "./baseApi";
 
 export const technicianApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getAllCategories: builder.query({
+    getAllTechnicians: builder.query({
       query: (params) => ({
         url: "/technicians",
         method: "GET",
@@ -40,7 +40,7 @@ export const technicianApi = baseApi.injectEndpoints({
 });
 
 export const {
-  useGetAllCategoriesQuery,
+  useGetAllTechniciansQuery,
   useGetTechnicianProfileByIdQuery,
   useCreateTechnicianProfileMutation,
   useUpdateTechnicianProfileMutation,
