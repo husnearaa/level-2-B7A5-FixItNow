@@ -12,6 +12,15 @@ export const categoriesApi = baseApi.injectEndpoints({
       providesTags: ["Category"],
     }),
 
+    getAllCategory: builder.query({
+      query: (params) => ({
+        url: "/categories",
+        method: "GET",
+        params: { ...params },
+      }),
+      providesTags: ["Category"],
+    }),
+
     // getSingleJobById: builder.query({
     //   query: (id) => ({
     //     url: `/admin/single-job/${id}`,
@@ -34,5 +43,6 @@ export const categoriesApi = baseApi.injectEndpoints({
 
 export const {
   useGetAllCategoriesQuery,
+  useGetAllCategoryQuery,
   useCreateCategoryMutation,
 } = categoriesApi;

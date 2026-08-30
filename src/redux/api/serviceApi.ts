@@ -21,7 +21,7 @@ export const serviceApi = baseApi.injectEndpoints({
 
     createService: builder.mutation({
       query: (data) => ({
-        url: "/service",
+        url: "/services",
         method: "POST",
         body: data,
       }),
@@ -37,13 +37,12 @@ export const serviceApi = baseApi.injectEndpoints({
       invalidatesTags: ["Service"],
     }),
     deleteService: builder.mutation({
-      query: ({ id, data }) => ({
-        url: `/services/${id}`,
-        method: "PATCH",
-        body: data,
-      }),
-      invalidatesTags: ["Service"],
-    }),
+  query: ({ id }) => ({
+    url: `/services/${id}`,
+    method: "DELETE",
+  }),
+  invalidatesTags: ["Service"],
+}),
   }),
 });
 

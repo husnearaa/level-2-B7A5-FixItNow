@@ -83,27 +83,7 @@ export const authApi = baseApi.injectEndpoints({
       }),
       providesTags: ["User"],
     }),
-    updateUser: builder.mutation({
-      query: (data) => ({
-        url: "/user/update-my-profile",
-        method: "PATCH",
-        body: data,
-      }),
-      invalidatesTags: ["User"],
-    }),
 
-    userAccountDelete: builder.mutation({
-      query: () => ({
-        url: `/user/delete-own-profile`,
-        method: "DELETE",
-      }),
-      invalidatesTags: ["User"],
-    }),
-
-    getDepartment: builder.query({
-      query: () => "/department",
-      providesTags: ["User"],
-    }),
   }),
 });
 
@@ -117,9 +97,5 @@ export const {
   usePasswordVerifyOtpMutation,
   useResetPasswordMutation,
   useChangePasswordMutation,
-  useGetMeQuery,
-  useUpdateUserMutation,
-  useUserAccountDeleteMutation,
-  useGetDepartmentQuery,
-  useForgetResendOtpMutation,
+  useGetMeQuery
 } = authApi;

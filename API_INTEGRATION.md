@@ -69,7 +69,6 @@ https://level-2-b7-a4.vercel.app/booking/my-bookings
 <!-- get booking by ID -->
 https://level-2-b7-a4.vercel.app/booking/${id}
 
-
 <!-- update booking status -->
 https://level-2-b7-a4.vercel.app/booking/${id}/status
 
@@ -79,4 +78,17 @@ https://level-2-b7-a4.vercel.app/booking/${id}/cancel
 
 <!-- service -->
 
+<!-- get all services -->
+https://level-2-b7-a4.vercel.app/services
 
+<!-- get service by ID -->
+https://level-2-b7-a4.vercel.app/services/${id}
+
+<!-- create service -->
+https://level-2-b7-a4.vercel.app/service
+
+<!-- update service -->
+https://level-2-b7-a4.vercel.app/services/${id}
+
+<!-- delete service -->
+https://level-2-b7-a4.vercel.app/services/${id}

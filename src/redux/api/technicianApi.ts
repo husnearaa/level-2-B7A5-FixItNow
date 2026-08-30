@@ -30,7 +30,7 @@ export const technicianApi = baseApi.injectEndpoints({
 
     updateTechnicianProfile: builder.mutation({
       query: ({ id, data }) => ({
-        url: `/technicians/${id}`,
+        url: `/technicians/profile`,
         method: "PATCH",
         body: data,
       }),
