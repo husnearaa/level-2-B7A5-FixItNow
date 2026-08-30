@@ -105,3 +105,18 @@ https://level-2-b7-a4.vercel.app/reviews
 
 <!-- get review -->
 https://level-2-b7-a4.vercel.app/reviews
+
+
+
+<!-- payments -->
+
+<!-- create payment -->
+https://level-2-b7-a4.vercel.app/payments
+
+<!-- get my payments-->
+https://level-2-b7-a4.vercel.app/payments
+
+<!-- get payments by id -->
+https://level-2-b7-a4.vercel.app/payments/${id}
+
+

@@ -207,7 +207,8 @@ export const baseApi = createApi({
     "Technician",
     "Availability",
     "Service",
-    "Review",  
+    "Review",
+    "Payment",  
   ],
   endpoints: () => ({}),
 });
