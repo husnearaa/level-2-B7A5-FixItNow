@@ -92,3 +92,13 @@ https://level-2-b7-a4.vercel.app/services/${id}
 
 <!-- delete service -->
 https://level-2-b7-a4.vercel.app/services/${id}
+
+
+
+<!-- review -->
+
+<!-- create review -->
+https://level-2-b7-a4.vercel.app/reviews
+
+<!-- get review -->
+https://level-2-b7-a4.vercel.app/reviews

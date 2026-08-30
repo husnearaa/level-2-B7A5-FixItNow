@@ -61,7 +61,6 @@ export const BookingsApi = baseApi.injectEndpoints({
       query: ({ id }) => ({
         url: `/booking/${id}/cancel`,
         method: "PATCH",
-
       }),
       invalidatesTags: ["Bookings"],
     }),

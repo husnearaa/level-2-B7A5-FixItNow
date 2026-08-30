@@ -1,5 +1,7 @@
 "use client";
 
+import { useCancelBookingMutation, useGetMyBookingsQuery } from "@/redux/api/bookingApi";
+import { useCreateReviewMutation } from "@/redux/api/reviewApi";
 import {
   CalendarDays,
   CheckCircle2,
@@ -11,146 +13,173 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+
 type BookingStatus =
   | "PENDING"
   | "CONFIRMED"
+  | "ACCEPTED"
   | "IN_PROGRESS"
   | "COMPLETED"
   | "CANCELLED";
 
 type Booking = {
   id: string;
-  service: string;
-  technician: string;
-  date: string;
-  time: string;
-  price: number;
+  customerId: string;
+  technicianId: string;
+  serviceId: string;
+  availabilityId: string;
+  totalAmount: string;
+  scheduledAt: string;
+  customerNote: string;
   status: BookingStatus;
+
+  service: {
+    id: string;
+    name: string;
+    description: string;
+    price: string;
+    location: string;
+    category: {
+      id: string;
+      name: string;
+      description: string;
+    };
+  };
+
+  customer: {
+    id: string;
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+  };
+
+  availability: {
+    id: string;
+    technicianId: string;
+    startTime: string;
+    endTime: string;
+    isBooked: boolean;
+    createdAt: string;
+  };
+
+  payment: {
+    id: string;
+    bookingId: string;
+    customerId: string;
+    transactionId: string | null;
+    amount: string;
+    status: "PENDING" | "COMPLETED" | "REFUNDED";
+    paidAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+  } | null;
+
+  review: {
+    id: string;
+    bookingId: string;
+    customerId: string;
+    technicianId: string;
+    rating: number;
+    comment: string;
+    createdAt: string;
+    updatedAt: string;
+  } | null;
 };
-
-type Payment = {
-  id: string;
-  bookingId: string;
-  service: string;
-  amount: number;
-  date: string;
-  status: "PAID" | "PENDING" | "REFUNDED";
-};
-
-const initialBookings: Booking[] = [
-  {
-    id: "#BK-1024",
-    service: "Home Cleaning",
-    technician: "James Wilson",
-    date: "Aug 28, 2026",
-    time: "10:00 AM",
-    price: 80,
-    status: "CONFIRMED",
-  },
-  {
-    id: "#BK-1023",
-    service: "AC Repair",
-    technician: "Robert Smith",
-    date: "Aug 30, 2026",
-    time: "02:30 PM",
-    price: 120,
-    status: "PENDING",
-  },
-  {
-    id: "#BK-1022",
-    service: "Plumbing",
-    technician: "Daniel Brown",
-    date: "Aug 20, 2026",
-    time: "11:00 AM",
-    price: 95,
-    status: "COMPLETED",
-  },
-  {
-    id: "#BK-1021",
-    service: "Electrical",
-    technician: "Michael Johnson",
-    date: "Aug 18, 2026",
-    time: "04:00 PM",
-    price: 110,
-    status: "COMPLETED",
-  },
-  {
-    id: "#BK-1020",
-    service: "Home Cleaning",
-    technician: "William Davis",
-    date: "Aug 15, 2026",
-    time: "09:30 AM",
-    price: 75,
-    status: "CANCELLED",
-  },
-];
-
-const initialPayments: Payment[] = [
-  {
-    id: "#PAY-501",
-    bookingId: "#BK-1022",
-    service: "Plumbing",
-    amount: 95,
-    date: "Aug 20, 2026",
-    status: "PAID",
-  },
-  {
-    id: "#PAY-500",
-    bookingId: "#BK-1021",
-    service: "Electrical",
-    amount: 110,
-    date: "Aug 18, 2026",
-    status: "PAID",
-  },
-  {
-    id: "#PAY-499",
-    bookingId: "#BK-1020",
-    service: "Home Cleaning",
-    amount: 75,
-    date: "Aug 15, 2026",
-    status: "REFUNDED",
-  },
-];
 
 export default function CustomerDashboardPage() {
-  const [bookings, setBookings] = useState<Booking[]>(initialBookings);
+  // ========================================
+  // GET MY BOOKINGS
+  // ========================================
+
+  const {
+    data: bookingsResponse,
+    isLoading,
+    isError,
+  } = useGetMyBookingsQuery({});
+
+  const bookings: Booking[] = bookingsResponse?.data || [];
+
+  // ========================================
+  // CANCEL BOOKING
+  // ========================================
+
+  const [cancelBooking, { isLoading: isCancelling }] =
+    useCancelBookingMutation();
+
+  // ========================================
+  // CREATE REVIEW
+  // ========================================
+
+  const [createReview, { isLoading: isSubmittingReview }] =
+    useCreateReviewMutation();
+
+  // ========================================
+  // REVIEW STATES
+  // ========================================
 
   const [reviewBooking, setReviewBooking] = useState<Booking | null>(null);
-
   const [rating, setRating] = useState(0);
-
   const [review, setReview] = useState("");
 
-  const [submittedReviews, setSubmittedReviews] = useState<string[]>([]);
+  // ========================================
+  // CANCEL BOOKING HANDLER
+  // ========================================
 
-  const cancelBooking = (id: string) => {
+  const handleCancelBooking = async (id: string) => {
     const confirmed = window.confirm(
       "Are you sure you want to cancel this booking?",
     );
 
     if (!confirmed) return;
 
-    setBookings((current) =>
-      current.map((booking) =>
-        booking.id === id
-          ? {
-              ...booking,
-              status: "CANCELLED",
-            }
-          : booking,
-      ),
-    );
+    try {
+      await cancelBooking({ id }).unwrap();
+    } catch (error) {
+      console.error("Failed to cancel booking:", error);
+      alert("Failed to cancel booking. Please try again.");
+    }
   };
 
-  const submitReview = () => {
-    if (!reviewBooking || rating === 0 || !review.trim()) return;
+  // ========================================
+  // SUBMIT REVIEW HANDLER
+  // ========================================
 
-    setSubmittedReviews((current) => [...current, reviewBooking.id]);
+  const handleSubmitReview = async () => {
+    if (!reviewBooking) return;
 
-    setReviewBooking(null);
-    setRating(0);
-    setReview("");
+    if (rating === 0) {
+      alert("Please select a rating.");
+      return;
+    }
+
+    if (!review.trim()) {
+      alert("Please write a review.");
+      return;
+    }
+
+    try {
+      await createReview({
+        bookingId: reviewBooking.id,
+        technicianId: reviewBooking.technicianId,
+        rating,
+        comment: review.trim(),
+      }).unwrap();
+
+      setReviewBooking(null);
+      setRating(0);
+      setReview("");
+
+      alert("Review submitted successfully.");
+    } catch (error) {
+      console.error("Failed to submit review:", error);
+      alert("Failed to submit review. Please try again.");
+    }
   };
+
+  // ========================================
+  // BOOKING STATUS STYLE
+  // ========================================
 
   const getBookingStatusClass = (status: BookingStatus) => {
     switch (status) {
@@ -158,6 +187,7 @@ export default function CustomerDashboardPage() {
         return "bg-[#EC620B]/10 text-[#EC620B]";
 
       case "CONFIRMED":
+      case "ACCEPTED":
         return "bg-green-100 text-green-700";
 
       case "IN_PROGRESS":
@@ -174,9 +204,15 @@ export default function CustomerDashboardPage() {
     }
   };
 
-  const getPaymentStatusClass = (status: Payment["status"]) => {
+  // ========================================
+  // PAYMENT STATUS STYLE
+  // ========================================
+
+  const getPaymentStatusClass = (
+    status: "PENDING" | "COMPLETED" | "REFUNDED",
+  ) => {
     switch (status) {
-      case "PAID":
+      case "COMPLETED":
         return "bg-green-100 text-green-700";
 
       case "PENDING":
@@ -190,10 +226,15 @@ export default function CustomerDashboardPage() {
     }
   };
 
+  // ========================================
+  // STATISTICS
+  // ========================================
+
   const upcomingBookings = bookings.filter(
     (booking) =>
       booking.status === "PENDING" ||
       booking.status === "CONFIRMED" ||
+      booking.status === "ACCEPTED" ||
       booking.status === "IN_PROGRESS",
   );
 
@@ -205,13 +246,47 @@ export default function CustomerDashboardPage() {
     (booking) => booking.status === "PENDING",
   );
 
-  const totalPaid = initialPayments
-    .filter((payment) => payment.status === "PAID")
-    .reduce((total, payment) => total + payment.amount, 0);
+  const totalPaid = bookings
+    .filter((booking) => booking.payment?.status === "COMPLETED")
+    .reduce(
+      (total, booking) => total + Number(booking.payment?.amount || 0),
+      0,
+    );
+
+  // ========================================
+  // LOADING
+  // ========================================
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <p className="text-sm font-medium text-[#00224A]/60">
+          Loading your dashboard...
+        </p>
+      </div>
+    );
+  }
+
+  // ========================================
+  // ERROR
+  // ========================================
+
+  if (isError) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center px-4">
+        <div className="rounded-lg bg-red-50 px-5 py-4 text-sm font-medium text-red-600">
+          Failed to load your bookings.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full max-w-full overflow-x-hidden px-4 py-6 md:px-6 lg:px-8">
-      {/* Header */}
+      {/* ========================================
+          HEADER
+      ======================================== */}
+
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-[#00224A] md:text-3xl">
           Customer Dashboard
@@ -222,9 +297,12 @@ export default function CustomerDashboardPage() {
         </p>
       </div>
 
-      {/* Statistics */}
+      {/* ========================================
+          STATISTICS
+      ======================================== */}
+
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {/* Upcoming */}
+        {/* Upcoming Bookings */}
         <div className="rounded-xl border border-[#00224A]/10 bg-white p-5 shadow-sm">
           <div className="flex items-start justify-between">
             <div>
@@ -262,7 +340,7 @@ export default function CustomerDashboardPage() {
           </div>
         </div>
 
-        {/* Completed */}
+        {/* Completed Jobs */}
         <div className="rounded-xl border border-[#00224A]/10 bg-white p-5 shadow-sm">
           <div className="flex items-start justify-between">
             <div>
@@ -281,7 +359,7 @@ export default function CustomerDashboardPage() {
           </div>
         </div>
 
-        {/* Payments */}
+        {/* Total Paid */}
         <div className="rounded-xl border border-[#00224A]/10 bg-white p-5 shadow-sm">
           <div className="flex items-start justify-between">
             <div>
@@ -301,7 +379,10 @@ export default function CustomerDashboardPage() {
         </div>
       </div>
 
-      {/* Booking History */}
+      {/* ========================================
+          BOOKING HISTORY
+      ======================================== */}
+
       <div className="mb-8 w-full max-w-full rounded-xl border border-[#00224A]/10 bg-white shadow-sm">
         <div className="border-b border-[#00224A]/10 p-5">
           <h2 className="text-lg font-bold text-[#00224A]">
@@ -313,7 +394,6 @@ export default function CustomerDashboardPage() {
           </p>
         </div>
 
-        {/* Only table scrolls */}
         <div className="w-full max-w-full overflow-x-auto">
           <table className="w-full min-w-[900px]">
             <thead>
@@ -349,82 +429,120 @@ export default function CustomerDashboardPage() {
             </thead>
 
             <tbody>
-              {bookings.map((booking) => (
-                <tr
-                  key={booking.id}
-                  className="border-b border-[#00224A]/10 last:border-b-0 hover:bg-[#EC620B]/5"
-                >
-                  <td className="whitespace-nowrap px-5 py-4 text-sm font-semibold text-[#00224A]">
-                    {booking.id}
-                  </td>
-
-                  <td className="whitespace-nowrap px-5 py-4 text-sm text-[#00224A]">
-                    {booking.service}
-                  </td>
-
-                  <td className="whitespace-nowrap px-5 py-4 text-sm text-[#00224A]">
-                    {booking.technician}
-                  </td>
-
-                  <td className="whitespace-nowrap px-5 py-4">
-                    <p className="text-sm font-medium text-[#00224A]">
-                      {booking.date}
-                    </p>
-
-                    <p className="mt-1 text-xs text-[#00224A]/50">
-                      {booking.time}
-                    </p>
-                  </td>
-
-                  <td className="whitespace-nowrap px-5 py-4 text-sm font-semibold text-[#00224A]">
-                    ${booking.price}
-                  </td>
-
-                  <td className="whitespace-nowrap px-5 py-4">
-                    <span
-                      className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${getBookingStatusClass(
-                        booking.status,
-                      )}`}
-                    >
-                      {booking.status.replace("_", " ")}
-                    </span>
-                  </td>
-
-                  <td className="whitespace-nowrap px-5 py-4">
-                    {booking.status === "PENDING" ||
-                    booking.status === "CONFIRMED" ? (
-                      <button
-                        type="button"
-                        onClick={() => cancelBooking(booking.id)}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50"
-                      >
-                        <XCircle className="h-3.5 w-3.5" />
-                        Cancel
-                      </button>
-                    ) : booking.status === "COMPLETED" ? (
-                      submittedReviews.includes(booking.id) ? (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-green-600">
-                          <CheckCircle2 className="h-4 w-4" />
-                          Reviewed
-                        </span>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setReviewBooking(booking)}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-[#EC620B] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#d95708]"
-                        >
-                          <MessageSquare className="h-3.5 w-3.5" />
-                          Review
-                        </button>
-                      )
-                    ) : (
-                      <span className="text-xs text-[#00224A]/40">
-                        No action
-                      </span>
-                    )}
+              {bookings.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="px-5 py-10 text-center text-sm text-[#00224A]/50"
+                  >
+                    No bookings found.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                bookings.map((booking) => (
+                  <tr
+                    key={booking.id}
+                    className="border-b border-[#00224A]/10 last:border-b-0 hover:bg-[#EC620B]/5"
+                  >
+                    {/* Booking ID */}
+                    <td className="whitespace-nowrap px-5 py-4 text-sm font-semibold text-[#00224A]">
+                      #{booking.id.slice(0, 8)}
+                    </td>
+
+                    {/* Service */}
+                    <td className="whitespace-nowrap px-5 py-4 text-sm text-[#00224A]">
+                      {booking.service.name}
+                    </td>
+
+                    {/* Technician */}
+                    <td className="whitespace-nowrap px-5 py-4 text-sm text-[#00224A]">
+                      Technician
+                    </td>
+
+                    {/* Date & Time */}
+                    <td className="whitespace-nowrap px-5 py-4">
+                      <p className="text-sm font-medium text-[#00224A]">
+                        {new Date(
+                          booking.scheduledAt,
+                        ).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </p>
+
+                      <p className="mt-1 text-xs text-[#00224A]/50">
+                        {new Date(
+                          booking.scheduledAt,
+                        ).toLocaleTimeString("en-US", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </td>
+
+                    {/* Price */}
+                    <td className="whitespace-nowrap px-5 py-4 text-sm font-semibold text-[#00224A]">
+                      ${Number(booking.totalAmount)}
+                    </td>
+
+                    {/* Status */}
+                    <td className="whitespace-nowrap px-5 py-4">
+                      <span
+                        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${getBookingStatusClass(
+                          booking.status,
+                        )}`}
+                      >
+                        {booking.status.replace("_", " ")}
+                      </span>
+                    </td>
+
+                    {/* Action */}
+                    <td className="whitespace-nowrap px-5 py-4">
+                      {/* Cancel */}
+                      {booking.status === "PENDING" ||
+                      booking.status === "CONFIRMED" ||
+                      booking.status === "ACCEPTED" ? (
+                        <button
+                          type="button"
+                          disabled={isCancelling}
+                          onClick={() => handleCancelBooking(booking.id)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <XCircle className="h-3.5 w-3.5" />
+
+                          {isCancelling ? "Cancelling..." : "Cancel"}
+                        </button>
+                      ) : /* Review */
+                      booking.status === "COMPLETED" ? (
+                        booking.review ? (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-green-600">
+                            <CheckCircle2 className="h-4 w-4" />
+                            Reviewed
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setReviewBooking(booking);
+                              setRating(0);
+                              setReview("");
+                            }}
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-[#EC620B] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#d95708]"
+                          >
+                            <MessageSquare className="h-3.5 w-3.5" />
+                            Review
+                          </button>
+                        )
+                      ) : (
+                        <span className="text-xs text-[#00224A]/40">
+                          No action
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -440,7 +558,10 @@ export default function CustomerDashboardPage() {
         </div>
       </div>
 
-      {/* Payment History */}
+      {/* ========================================
+          PAYMENT HISTORY
+      ======================================== */}
+
       <div className="mb-8 w-full max-w-full rounded-xl border border-[#00224A]/10 bg-white shadow-sm">
         <div className="border-b border-[#00224A]/10 p-5">
           <h2 className="text-lg font-bold text-[#00224A]">
@@ -483,122 +604,93 @@ export default function CustomerDashboardPage() {
             </thead>
 
             <tbody>
-              {initialPayments.map((payment) => (
-                <tr
-                  key={payment.id}
-                  className="border-b border-[#00224A]/10 last:border-b-0 hover:bg-[#EC620B]/5"
-                >
-                  <td className="whitespace-nowrap px-5 py-4 text-sm font-semibold text-[#00224A]">
-                    {payment.id}
-                  </td>
-
-                  <td className="whitespace-nowrap px-5 py-4 text-sm text-[#00224A]">
-                    {payment.bookingId}
-                  </td>
-
-                  <td className="whitespace-nowrap px-5 py-4 text-sm text-[#00224A]">
-                    {payment.service}
-                  </td>
-
-                  <td className="whitespace-nowrap px-5 py-4 text-sm text-[#00224A]">
-                    {payment.date}
-                  </td>
-
-                  <td className="whitespace-nowrap px-5 py-4 text-sm font-semibold text-[#00224A]">
-                    ${payment.amount}
-                  </td>
-
-                  <td className="whitespace-nowrap px-5 py-4">
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold ${getPaymentStatusClass(
-                        payment.status,
-                      )}`}
-                    >
-                      {payment.status}
-                    </span>
+              {bookings.filter((booking) => booking.payment).length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-5 py-10 text-center text-sm text-[#00224A]/50"
+                  >
+                    No payment history found.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                bookings
+                  .filter((booking) => booking.payment)
+                  .map((booking) => {
+                    const payment = booking.payment!;
+
+                    return (
+                      <tr
+                        key={payment.id}
+                        className="border-b border-[#00224A]/10 last:border-b-0 hover:bg-[#EC620B]/5"
+                      >
+                        {/* Payment ID */}
+                        <td className="whitespace-nowrap px-5 py-4 text-sm font-semibold text-[#00224A]">
+                          #{payment.id.slice(0, 8)}
+                        </td>
+
+                        {/* Booking ID */}
+                        <td className="whitespace-nowrap px-5 py-4 text-sm text-[#00224A]">
+                          #{booking.id.slice(0, 8)}
+                        </td>
+
+                        {/* Service */}
+                        <td className="whitespace-nowrap px-5 py-4 text-sm text-[#00224A]">
+                          {booking.service.name}
+                        </td>
+
+                        {/* Date */}
+                        <td className="whitespace-nowrap px-5 py-4 text-sm text-[#00224A]">
+                          {new Date(
+                            payment.paidAt ||
+                              payment.createdAt ||
+                              booking.scheduledAt,
+                          ).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </td>
+
+                        {/* Amount */}
+                        <td className="whitespace-nowrap px-5 py-4 text-sm font-semibold text-[#00224A]">
+                          ${Number(payment.amount)}
+                        </td>
+
+                        {/* Status */}
+                        <td className="whitespace-nowrap px-5 py-4">
+                          <span
+                            className={`rounded-full px-3 py-1 text-xs font-semibold ${getPaymentStatusClass(
+                              payment.status,
+                            )}`}
+                          >
+                            {payment.status}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Review Section */}
-      <div className="w-full rounded-xl border border-[#00224A]/10 bg-white shadow-sm">
-        <div className="border-b border-[#00224A]/10 p-5">
-          <h2 className="text-lg font-bold text-[#00224A]">
-            Review Completed Services
-          </h2>
+      {/* ========================================
+          REVIEW MODAL
+      ======================================== */}
 
-          <p className="mt-1 text-sm text-[#00224A]/60">
-            Share your experience after completing a service.
-          </p>
-        </div>
-
-        <div className="p-5">
-          {completedBookings.length === 0 ? (
-            <div className="py-6 text-center">
-              <MessageSquare className="mx-auto h-8 w-8 text-[#00224A]/30" />
-
-              <p className="mt-3 text-sm font-semibold text-[#00224A]">
-                No completed services yet
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {completedBookings.map((booking) => (
-                <div
-                  key={booking.id}
-                  className="flex flex-col justify-between gap-4 rounded-lg border border-[#00224A]/10 p-4 md:flex-row md:items-center"
-                >
-                  <div>
-                    <h3 className="text-sm font-semibold text-[#00224A]">
-                      {booking.service}
-                    </h3>
-
-                    <p className="mt-1 text-xs text-[#00224A]/60">
-                      Technician: {booking.technician}
-                    </p>
-
-                    <p className="mt-1 text-xs text-[#00224A]/50">
-                      {booking.date}
-                    </p>
-                  </div>
-
-                  {submittedReviews.includes(booking.id) ? (
-                    <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-green-600">
-                      <CheckCircle2 className="h-4 w-4" />
-                      Review Submitted
-                    </span>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setReviewBooking(booking)}
-                      className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#EC620B] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#d95708]"
-                    >
-                      <Star className="h-4 w-4" />
-                      Leave Review
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Review Modal */}
       {reviewBooking && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#00224A]/40 p-4">
           <div className="w-full max-w-md rounded-xl bg-white shadow-xl">
+            {/* Modal Header */}
             <div className="border-b border-[#00224A]/10 p-5">
               <h2 className="text-lg font-bold text-[#00224A]">
                 Leave a Review
               </h2>
 
               <p className="mt-1 text-sm text-[#00224A]/60">
-                {reviewBooking.service} with {reviewBooking.technician}
+                {reviewBooking.service.name}
               </p>
             </div>
 
@@ -629,7 +721,7 @@ export default function CustomerDashboardPage() {
                 </div>
               </div>
 
-              {/* Comment */}
+              {/* Review */}
               <div>
                 <label
                   htmlFor="review"
@@ -652,23 +744,28 @@ export default function CustomerDashboardPage() {
               <div className="flex justify-end gap-3">
                 <button
                   type="button"
+                  disabled={isSubmittingReview}
                   onClick={() => {
                     setReviewBooking(null);
                     setRating(0);
                     setReview("");
                   }}
-                  className="rounded-lg border border-[#00224A]/15 px-4 py-2.5 text-sm font-semibold text-[#00224A] hover:bg-[#00224A]/5"
+                  className="rounded-lg border border-[#00224A]/15 px-4 py-2.5 text-sm font-semibold text-[#00224A] transition-colors hover:bg-[#00224A]/5 disabled:opacity-50"
                 >
                   Cancel
                 </button>
 
                 <button
                   type="button"
-                  disabled={rating === 0 || !review.trim()}
-                  onClick={submitReview}
+                  disabled={
+                    rating === 0 ||
+                    !review.trim() ||
+                    isSubmittingReview
+                  }
+                  onClick={handleSubmitReview}
                   className="rounded-lg bg-[#EC620B] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#d95708] disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  Submit Review
+                  {isSubmittingReview ? "Submitting..." : "Submit Review"}
                 </button>
               </div>
             </div>
@@ -678,3 +775,4 @@ export default function CustomerDashboardPage() {
     </div>
   );
 }
+
