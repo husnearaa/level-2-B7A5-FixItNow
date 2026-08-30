@@ -11,6 +11,16 @@ export const availabilityApi = baseApi.injectEndpoints({
       }),
       providesTags: ["Availability"],
     }),
+
+    getTechnicianAvailability: builder.query({
+      query: ({ id, ...params }) => ({
+        url: `/availability/technician/${id}`,
+        method: "GET",
+        params: { ...params },
+      }),
+      providesTags: ["Availability"],
+    }),
+
     createAvailability: builder.mutation({
       query: (data) => ({
         url: "/availability",
@@ -38,9 +48,10 @@ export const availabilityApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { 
-    useGetAvailabilityQuery,
-    useCreateAvailabilityMutation,
-    useUpdateAvailabilityMutation,
-    useDeleteAvailabilityMutation
- } = availabilityApi;
+export const {
+  useGetAvailabilityQuery,
+  useGetTechnicianAvailabilityQuery,
+  useCreateAvailabilityMutation,
+  useUpdateAvailabilityMutation,
+  useDeleteAvailabilityMutation,
+} = availabilityApi;
