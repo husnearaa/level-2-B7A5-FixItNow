@@ -45,6 +45,9 @@ https://level-2-b7-a4.vercel.app/technicians/${id}
 <!-- get availability -->
 https://level-2-b7-a4.vercel.app/availability
 
+<!-- get technician availability -->
+https://level-2-b7-a4.vercel.app/availability/technician/${id}
+
 <!-- create availability -->
 https://level-2-b7-a4.vercel.app/availability
 
