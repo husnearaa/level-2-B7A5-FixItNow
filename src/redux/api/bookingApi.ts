@@ -1,26 +1,3 @@
-// import { baseApi } from "./baseApi";
-// // import { GetAllJobsResponse } from "@/types/jobType";
-
-// export const BookingsApi = baseApi.injectEndpoints({
-//   endpoints: (builder) => ({
-//     getAllBookings: builder.query({
-//       query: (params) => ({
-//         url: "/admin/bookings",
-//         method: "GET",
-//         params: { ...params },
-//       }),
-//       providesTags: ["Bookings"],
-//     }),
-
-//   }),
-// });
-
-// export const {
-//   useGetAllBookingsQuery,
-
- 
-// } = BookingsApi;
-
 import { baseApi } from "./baseApi";
 
 // import { GetAllJobsResponse } from "@/types/jobType";
@@ -37,12 +14,32 @@ export const BookingsApi = baseApi.injectEndpoints({
       providesTags: ["Bookings"],
     }),
 
-    // TECHNICIAN - GET MY BOOKINGS
+    // customer - GET MY BOOKINGS
     getMyBookings: builder.query({
       query: (params) => ({
         url: "/booking/my-bookings",
         method: "GET",
         params: { ...params },
+      }),
+      providesTags: ["Bookings"],
+    }),
+
+    // TECHNICIAN
+
+    getTechnicianBookings: builder.query({
+      query: (params) => ({
+        url: "/booking/technician-bookings",
+        method: "GET",
+        params: { ...params },
+      }),
+      providesTags: ["Bookings"],
+    }),
+
+
+  getBookingById: builder.query({
+      query: (id) => ({
+        url: `/booking/${id}`,
+        method: "GET",
       }),
       providesTags: ["Bookings"],
     }),
@@ -58,11 +55,24 @@ export const BookingsApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Bookings"],
     }),
+
+    // TECHNICIAN - cancel BOOKING 
+     cancelBooking: builder.mutation({
+      query: ({ id }) => ({
+        url: `/booking/${id}/cancel`,
+        method: "PATCH",
+
+      }),
+      invalidatesTags: ["Bookings"],
+    }),
   }),
 });
 
 export const {
   useGetAllBookingsQuery,
   useGetMyBookingsQuery,
+  useGetTechnicianBookingsQuery,
   useUpdateBookingStatusMutation,
+  useGetBookingByIdQuery,
+  useCancelBookingMutation,
 } = BookingsApi;

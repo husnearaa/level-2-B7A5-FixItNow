@@ -11,6 +11,7 @@ import {
   Trash2,
   UserRound,
 } from "lucide-react";
+import Image from "next/image";
 import { ChangeEvent, FormEvent, useRef, useState } from "react";
 
 const initialSkills = [
@@ -159,7 +160,7 @@ export default function TechnicianProfilePage() {
                 {/* Avatar */}
                 <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full bg-[#EC620B] text-white shadow-sm">
                   {profileImage ? (
-                    <img
+                    <Image
                       src={profileImage}
                       alt="Technician profile"
                       className="h-full w-full object-cover"

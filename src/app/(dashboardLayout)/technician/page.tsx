@@ -1,8 +1,7 @@
 "use client";
 
+import { useGetTechnicianBookingsQuery, useUpdateBookingStatusMutation } from "@/redux/api/bookingApi";
 import {
-  Activity,
-  ArrowUpRight,
   CalendarDays,
   CheckCircle2,
   Clock3,
@@ -11,214 +10,252 @@ import {
   UserRound,
   XCircle,
 } from "lucide-react";
-import { useState } from "react";
 
-type JobStatus = "CONFIRMED" | "PENDING";
 
-type Job = {
+
+type BookingStatus =
+  | "REQUESTED"
+  | "ACCEPTED"
+  | "PAID"
+  | "IN_PROGRESS"
+  | "COMPLETED"
+  | "DECLINED"
+  | "CANCELLED";
+
+type Booking = {
   id: string;
-  customer: string;
-  service: string;
-  date: string;
-  time: string;
-  status: JobStatus;
+
+  status: BookingStatus;
+
+  scheduledAt: string;
+
+  totalAmount: number;
+
+  customer?: {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+    address?: string;
+  };
+
+  service?: {
+    id: string;
+    name: string;
+    price: number;
+    category?: {
+      id: string;
+      name: string;
+    };
+  };
+
+  availability?: {
+    id: string;
+    startTime: string;
+    endTime: string;
+  };
 };
-
-type PendingRequest = {
-  id: string;
-  customer: string;
-  service: string;
-  date: string;
-  time: string;
-};
-
-const initialUpcomingJobs: Job[] = [
-  {
-    id: "#BK-1024",
-    customer: "Sarah Ahmed",
-    service: "Home Cleaning",
-    date: "Aug 24, 2026",
-    time: "10:00 AM",
-    status: "CONFIRMED",
-  },
-  {
-    id: "#BK-1023",
-    customer: "Emily Johnson",
-    service: "Plumbing",
-    date: "Aug 24, 2026",
-    time: "02:30 PM",
-    status: "CONFIRMED",
-  },
-  {
-    id: "#BK-1022",
-    customer: "Michael Brown",
-    service: "Electrical",
-    date: "Aug 25, 2026",
-    time: "11:00 AM",
-    status: "PENDING",
-  },
-  {
-    id: "#BK-1021",
-    customer: "Maria Khan",
-    service: "AC Repair",
-    date: "Aug 26, 2026",
-    time: "04:00 PM",
-    status: "CONFIRMED",
-  },
-];
-
-const initialPendingRequests: PendingRequest[] = [
-  {
-    id: "#REQ-301",
-    customer: "John Smith",
-    service: "AC Repair",
-    date: "Aug 27, 2026",
-    time: "10:30 AM",
-  },
-  {
-    id: "#REQ-302",
-    customer: "Nadia Rahman",
-    service: "Home Cleaning",
-    date: "Aug 27, 2026",
-    time: "03:00 PM",
-  },
-];
 
 export default function TechnicianDashboardPage() {
-  const [upcomingJobs, setUpcomingJobs] = useState<Job[]>(
-    initialUpcomingJobs,
+  // ========================================
+  // GET TECHNICIAN BOOKINGS
+  // ========================================
+
+  const {
+    data: response,
+    isLoading,
+    isError,
+  } = useGetTechnicianBookingsQuery({});
+
+  const [
+    updateBookingStatus,
+    { isLoading: isUpdating },
+  ] = useUpdateBookingStatusMutation();
+
+  const bookings: Booking[] = response?.data ?? [];
+
+  // FILTER DATA
+
+  const pendingRequests = bookings.filter(
+    (booking) =>
+      booking.status === "REQUESTED"
   );
 
-  const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>(
-    initialPendingRequests,
+  const upcomingJobs = bookings.filter(
+    (booking) =>
+      booking.status === "ACCEPTED" ||
+      booking.status === "PAID" ||
+      booking.status === "IN_PROGRESS"
   );
 
-  // Accept booking request
-  const handleAccept = (request: PendingRequest) => {
-    const acceptedJob: Job = {
-      id: request.id.replace("#REQ", "#BK"),
-      customer: request.customer,
-      service: request.service,
-      date: request.date,
-      time: request.time,
-      status: "CONFIRMED",
-    };
+  const completedJobs = bookings.filter(
+    (booking) =>
+      booking.status === "COMPLETED"
+  );
 
-    setUpcomingJobs((currentJobs) => [...currentJobs, acceptedJob]);
+  // TOTAL EARNINGS
 
-    setPendingRequests((currentRequests) =>
-      currentRequests.filter((item) => item.id !== request.id),
-    );
+  const totalEarnings = completedJobs.reduce(
+    (total, booking) =>
+      total + Number(booking.totalAmount || 0),
+    0
+  );
+
+  // ACCEPT REQUEST
+
+
+  const handleAccept = async (
+    bookingId: string
+  ) => {
+    try {
+      await updateBookingStatus({
+        id: bookingId,
+        status: "ACCEPTED",
+      }).unwrap();
+    } catch (error) {
+      console.error(
+        "Failed to accept booking:",
+        error
+      );
+    }
   };
 
-  // Decline booking request
-  const handleDecline = (requestId: string) => {
-    setPendingRequests((currentRequests) =>
-      currentRequests.filter((request) => request.id !== requestId),
-    );
+  // ========================================
+  // DECLINE REQUEST
+  // ========================================
+
+  const handleDecline = async (
+    bookingId: string
+  ) => {
+    try {
+      await updateBookingStatus({
+        id: bookingId,
+        status: "DECLINED",
+      }).unwrap();
+    } catch (error) {
+      console.error(
+        "Failed to decline booking:",
+        error
+      );
+    }
   };
+
+  // ========================================
+  // LOADING
+  // ========================================
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[500px] items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-[#EC620B]" />
+
+          <p className="text-sm text-[#00224A]/60">
+            Loading dashboard...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ========================================
+  // ERROR
+  // ========================================
+
+  if (isError) {
+    return (
+      <div className="p-6">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-5">
+          <h2 className="font-semibold text-red-600">
+            Failed to load dashboard
+          </h2>
+
+          <p className="mt-1 text-sm text-red-500">
+            Please try again later.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen px-4 py-6 md:px-6 lg:px-8">
-      {/* Header */}
-      <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
-        <div>
-          <h1 className="text-lg font-semibold text-[#00224A] md:text-3xl lg:text-2xl">
-            Technician Dashboard
-          </h1>
-        </div>
+
+      {/* =====================================
+          HEADER
+      ===================================== */}
+
+      <div className="mb-8">
+        <h1 className="text-lg font-semibold text-[#00224A] md:text-3xl lg:text-2xl">
+          Technician Dashboard
+        </h1>
+
+        <p className="mt-1 text-sm text-[#00224A]/60">
+          Manage your service requests and upcoming jobs.
+        </p>
       </div>
 
-      {/* Statistics */}
+      {/* =====================================
+          STATISTICS
+      ===================================== */}
+
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {/* Total Earnings */}
-        <div className="rounded-xl border border-[#00224A]/10 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-sm font-medium text-[#00224A]/60">
-                Total Earnings
-              </p>
 
-              <h2 className="mt-2 text-3xl font-bold text-[#00224A]">
-                $4,680
-              </h2>
-            </div>
+        {/* Earnings */}
 
-            <div className="rounded-lg bg-[#EC620B] p-3">
-              <DollarSign className="h-5 w-5 text-white" />
-            </div>
-          </div>
-        </div>
+        <StatCard
+          title="Total Earnings"
+          value={`$${totalEarnings.toLocaleString()}`}
+          icon={<DollarSign className="h-5 w-5 text-white" />}
+        />
 
-        {/* Upcoming Jobs */}
-        <div className="rounded-xl border border-[#00224A]/10 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-sm font-medium text-[#00224A]/60">
-                Upcoming Jobs
-              </p>
+        {/* Upcoming */}
 
-              <h2 className="mt-2 text-3xl font-bold text-[#00224A]">
-                {upcomingJobs.length}
-              </h2>
-            </div>
+        <StatCard
+          title="Upcoming Jobs"
+          value={upcomingJobs.length}
+          icon={
+            <CalendarDays className="h-5 w-5 text-white" />
+          }
+        />
 
-            <div className="rounded-lg bg-[#EC620B] p-3">
-              <CalendarDays className="h-5 w-5 text-white" />
-            </div>
-          </div>
-        </div>
+        {/* Requests */}
 
-        {/* Pending Requests */}
-        <div className="rounded-xl border border-[#00224A]/10 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-sm font-medium text-[#00224A]/60">
-                Pending Requests
-              </p>
+        <StatCard
+          title="Pending Requests"
+          value={pendingRequests.length}
+          icon={
+            <Clock3 className="h-5 w-5 text-white" />
+          }
+        />
 
-              <h2 className="mt-2 text-3xl font-bold text-[#00224A]">
-                {pendingRequests.length}
-              </h2>
-            </div>
+        {/* Completed */}
 
-            <div className="rounded-lg bg-[#EC620B] p-3">
-              <Clock3 className="h-5 w-5 text-white" />
-            </div>
-          </div>
-        </div>
+        <StatCard
+          title="Completed Jobs"
+          value={completedJobs.length}
+          icon={
+            <CheckCircle2 className="h-5 w-5 text-white" />
+          }
+        />
 
-        {/* Completed Jobs */}
-        <div className="rounded-xl border border-[#00224A]/10 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-sm font-medium text-[#00224A]/60">
-                Completed Jobs
-              </p>
-
-              <h2 className="mt-2 text-3xl font-bold text-[#00224A]">
-                86
-              </h2>
-            </div>
-
-            <div className="rounded-lg bg-[#EC620B] p-3">
-              <CheckCircle2 className="h-5 w-5 text-white" />
-            </div>
-          </div>
-        </div>
       </div>
 
-      {/* Upcoming Jobs */}
+      {/* =====================================
+          UPCOMING JOBS
+      ===================================== */}
+
       <div className="mb-8 rounded-xl border border-[#00224A]/10 bg-white shadow-sm">
-        {/* Section Header */}
+
         <div className="flex items-center justify-between border-b border-[#00224A]/10 p-5">
+
           <div>
             <h2 className="text-lg font-bold text-[#00224A]">
               Upcoming Jobs
             </h2>
 
             <p className="mt-1 text-sm text-[#00224A]/60">
-              View your upcoming scheduled service jobs.
+              View your accepted and active service jobs.
             </p>
           </div>
 
@@ -228,13 +265,16 @@ export default function TechnicianDashboardPage() {
           >
             <MoreHorizontal className="h-5 w-5" />
           </button>
+
         </div>
 
-        {/* Table */}
         <div className="overflow-x-auto">
+
           <table className="w-full min-w-[800px]">
+
             <thead>
               <tr className="border-b border-[#00224A]/10 bg-[#00224A]/5">
+
                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#00224A]">
                   Booking
                 </th>
@@ -254,89 +294,93 @@ export default function TechnicianDashboardPage() {
                 <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#00224A]">
                   Status
                 </th>
+
               </tr>
             </thead>
 
             <tbody>
+
               {upcomingJobs.map((job) => (
+
                 <tr
                   key={job.id}
                   className="border-b border-[#00224A]/10 transition-colors last:border-b-0 hover:bg-[#EC620B]/5"
                 >
-                  {/* Booking */}
+
                   <td className="px-5 py-4 text-sm font-semibold text-[#00224A]">
-                    {job.id}
+                    #{job.id.slice(-6)}
                   </td>
 
-                  {/* Customer */}
                   <td className="px-5 py-4">
+
                     <div className="flex items-center gap-2">
+
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#EC620B] text-white">
                         <UserRound className="h-4 w-4" />
                       </div>
 
                       <span className="text-sm text-[#00224A]">
-                        {job.customer}
+                        {job.customer?.name ??
+                          "Unknown Customer"}
                       </span>
+
                     </div>
+
                   </td>
 
-                  {/* Service */}
                   <td className="px-5 py-4 text-sm text-[#00224A]">
-                    {job.service}
+                    {job.service?.name ??
+                      "Unknown Service"}
                   </td>
 
-                  {/* Date & Time */}
                   <td className="px-5 py-4">
+
                     <p className="text-sm font-medium text-[#00224A]">
-                      {job.date}
+                      {formatDate(
+                        job.scheduledAt
+                      )}
                     </p>
 
                     <p className="mt-1 text-xs text-[#00224A]/50">
-                      {job.time}
-                    </p>
-                  </td>
-
-                  {/* Status */}
-                  <td className="px-5 py-4">
-                    <span
-                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
-                        job.status === "CONFIRMED"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-[#EC620B]/10 text-[#EC620B]"
-                      }`}
-                    >
-                      {job.status === "CONFIRMED" ? (
-                        <CheckCircle2 className="h-3 w-3" />
-                      ) : (
-                        <Clock3 className="h-3 w-3" />
+                      {formatTime(
+                        job.scheduledAt
                       )}
+                    </p>
 
-                      {job.status}
-                    </span>
                   </td>
+
+                  <td className="px-5 py-4">
+                    <StatusBadge
+                      status={job.status}
+                    />
+                  </td>
+
                 </tr>
+
               ))}
 
               {upcomingJobs.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="px-5 py-10 text-center text-sm text-[#00224A]/50"
-                  >
-                    No upcoming jobs.
-                  </td>
-                </tr>
+                <EmptyTableRow
+                  message="No upcoming jobs."
+                />
               )}
+
             </tbody>
+
           </table>
+
         </div>
+
       </div>
 
-      {/* Pending Requests */}
+      {/* =====================================
+          PENDING REQUESTS
+      ===================================== */}
+
       <div className="rounded-xl border border-[#00224A]/10 bg-white shadow-sm">
-        {/* Section Header */}
+
         <div className="border-b border-[#00224A]/10 p-5">
+
           <h2 className="text-lg font-bold text-[#00224A]">
             Pending Requests
           </h2>
@@ -344,62 +388,104 @@ export default function TechnicianDashboardPage() {
           <p className="mt-1 text-sm text-[#00224A]/60">
             Review and respond to new customer booking requests.
           </p>
+
         </div>
 
-        {/* Requests */}
         {pendingRequests.length > 0 ? (
+
           <div className="divide-y divide-[#00224A]/10">
-            {pendingRequests.map((request) => (
-              <div
-                key={request.id}
-                className="flex flex-col justify-between gap-4 p-5 transition-colors hover:bg-[#EC620B]/5 md:flex-row md:items-center"
-              >
-                {/* Customer Information */}
-                <div className="flex items-center gap-4">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#EC620B] text-white">
-                    <UserRound className="h-5 w-5" />
+
+            {pendingRequests.map(
+              (request) => (
+
+                <div
+                  key={request.id}
+                  className="flex flex-col justify-between gap-4 p-5 transition-colors hover:bg-[#EC620B]/5 md:flex-row md:items-center"
+                >
+
+                  {/* Customer */}
+
+                  <div className="flex items-center gap-4">
+
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#EC620B] text-white">
+                      <UserRound className="h-5 w-5" />
+                    </div>
+
+                    <div>
+
+                      <h3 className="text-sm font-semibold text-[#00224A]">
+                        {request.customer?.name ??
+                          "Unknown Customer"}
+                      </h3>
+
+                      <p className="mt-1 text-sm text-[#00224A]/60">
+                        {request.service?.name ??
+                          "Unknown Service"}
+                      </p>
+
+                      <p className="mt-1 text-xs text-[#00224A]/50">
+                        {formatDate(
+                          request.scheduledAt
+                        )}{" "}
+                        •{" "}
+                        {formatTime(
+                          request.scheduledAt
+                        )}
+                      </p>
+
+                    </div>
+
                   </div>
 
-                  <div>
-                    <h3 className="text-sm font-semibold text-[#00224A]">
-                      {request.customer}
-                    </h3>
+                  {/* Actions */}
 
-                    <p className="mt-1 text-sm text-[#00224A]/60">
-                      {request.service}
-                    </p>
+                  <div className="flex items-center gap-2">
 
-                    <p className="mt-1 text-xs text-[#00224A]/50">
-                      {request.date} • {request.time}
-                    </p>
+                    <button
+                      type="button"
+                      disabled={isUpdating}
+                      onClick={() =>
+                        handleAccept(
+                          request.id
+                        )
+                      }
+                      className="inline-flex items-center gap-2 rounded-lg bg-[#EC620B] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#EC620B]/90 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <CheckCircle2 className="h-4 w-4" />
+
+                      {isUpdating
+                        ? "Updating..."
+                        : "Accept"}
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={isUpdating}
+                      onClick={() =>
+                        handleDecline(
+                          request.id
+                        )
+                      }
+                      className="inline-flex items-center gap-2 rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <XCircle className="h-4 w-4" />
+
+                      Decline
+                    </button>
+
                   </div>
+
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleAccept(request)}
-                    className="inline-flex items-center gap-2 rounded-lg bg-[#EC620B] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#EC620B]/90 active:scale-[0.98]"
-                  >
-                    <CheckCircle2 className="h-4 w-4" />
-                    Accept
-                  </button>
+              )
+            )}
 
-                  <button
-                    type="button"
-                    onClick={() => handleDecline(request.id)}
-                    className="inline-flex items-center gap-2 rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 active:scale-[0.98]"
-                  >
-                    <XCircle className="h-4 w-4" />
-                    Decline
-                  </button>
-                </div>
-              </div>
-            ))}
           </div>
+
         ) : (
+
           <div className="flex flex-col items-center justify-center px-5 py-12 text-center">
+
             <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
               <CheckCircle2 className="h-6 w-6 text-green-600" />
             </div>
@@ -411,9 +497,216 @@ export default function TechnicianDashboardPage() {
             <p className="mt-1 text-sm text-[#00224A]/50">
               You have reviewed all booking requests.
             </p>
+
           </div>
+
         )}
+
       </div>
+
     </div>
+  );
+}
+
+/* ==========================================
+   STAT CARD
+========================================== */
+
+function StatCard({
+  title,
+  value,
+  icon,
+}: {
+  title: string;
+  value: string | number;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-xl border border-[#00224A]/10 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+
+      <div className="flex items-start justify-between">
+
+        <div>
+
+          <p className="text-sm font-medium text-[#00224A]/60">
+            {title}
+          </p>
+
+          <h2 className="mt-2 text-3xl font-bold text-[#00224A]">
+            {value}
+          </h2>
+
+        </div>
+
+        <div className="rounded-lg bg-[#EC620B] p-3">
+          {icon}
+        </div>
+
+      </div>
+
+    </div>
+  );
+}
+
+/* ==========================================
+   STATUS BADGE
+========================================== */
+
+function StatusBadge({
+  status,
+}: {
+  status: BookingStatus;
+}) {
+  const statusConfig: Record<
+    BookingStatus,
+    {
+      label: string;
+      className: string;
+      icon: React.ReactNode;
+    }
+  > = {
+    REQUESTED: {
+      label: "Requested",
+      className:
+        "bg-[#EC620B]/10 text-[#EC620B]",
+      icon: (
+        <Clock3 className="h-3 w-3" />
+      ),
+    },
+
+    ACCEPTED: {
+      label: "Accepted",
+      className:
+        "bg-green-100 text-green-700",
+      icon: (
+        <CheckCircle2 className="h-3 w-3" />
+      ),
+    },
+
+    PAID: {
+      label: "Paid",
+      className:
+        "bg-blue-100 text-blue-700",
+      icon: (
+        <CheckCircle2 className="h-3 w-3" />
+      ),
+    },
+
+    IN_PROGRESS: {
+      label: "In Progress",
+      className:
+        "bg-purple-100 text-purple-700",
+      icon: (
+        <Clock3 className="h-3 w-3" />
+      ),
+    },
+
+    COMPLETED: {
+      label: "Completed",
+      className:
+        "bg-green-100 text-green-700",
+      icon: (
+        <CheckCircle2 className="h-3 w-3" />
+      ),
+    },
+
+    DECLINED: {
+      label: "Declined",
+      className:
+        "bg-red-100 text-red-700",
+      icon: (
+        <XCircle className="h-3 w-3" />
+      ),
+    },
+
+    CANCELLED: {
+      label: "Cancelled",
+      className:
+        "bg-red-100 text-red-700",
+      icon: (
+        <XCircle className="h-3 w-3" />
+      ),
+    },
+  };
+
+  const config = statusConfig[status];
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${config.className}`}
+    >
+      {config.icon}
+      {config.label}
+    </span>
+  );
+}
+
+/* ==========================================
+   EMPTY TABLE
+========================================== */
+
+function EmptyTableRow({
+  message,
+}: {
+  message: string;
+}) {
+  return (
+    <tr>
+      <td
+        colSpan={5}
+        className="px-5 py-10 text-center text-sm text-[#00224A]/50"
+      >
+        {message}
+      </td>
+    </tr>
+  );
+}
+
+/* ==========================================
+   DATE
+========================================== */
+
+function formatDate(
+  date?: string
+) {
+  if (!date) return "—";
+
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "—";
+  }
+
+  return parsedDate.toLocaleDateString(
+    "en-US",
+    {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }
+  );
+}
+
+/* ==========================================
+   TIME
+========================================== */
+
+function formatTime(
+  date?: string
+) {
+  if (!date) return "—";
+
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "—";
+  }
+
+  return parsedDate.toLocaleTimeString(
+    "en-US",
+    {
+      hour: "numeric",
+      minute: "2-digit",
+    }
   );
 }
