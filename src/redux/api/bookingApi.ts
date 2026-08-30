@@ -1,8 +1,33 @@
+// import { baseApi } from "./baseApi";
+// // import { GetAllJobsResponse } from "@/types/jobType";
+
+// export const BookingsApi = baseApi.injectEndpoints({
+//   endpoints: (builder) => ({
+//     getAllBookings: builder.query({
+//       query: (params) => ({
+//         url: "/admin/bookings",
+//         method: "GET",
+//         params: { ...params },
+//       }),
+//       providesTags: ["Bookings"],
+//     }),
+
+//   }),
+// });
+
+// export const {
+//   useGetAllBookingsQuery,
+
+ 
+// } = BookingsApi;
+
 import { baseApi } from "./baseApi";
+
 // import { GetAllJobsResponse } from "@/types/jobType";
 
 export const BookingsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    // ADMIN - GET ALL BOOKINGS
     getAllBookings: builder.query({
       query: (params) => ({
         url: "/admin/bookings",
@@ -12,37 +37,32 @@ export const BookingsApi = baseApi.injectEndpoints({
       providesTags: ["Bookings"],
     }),
 
- 
-    // getSingleJobById: builder.query({
-    //   query: (id) => ({
-    //     url: `/admin/single-job/${id}`,
-    //     method: "GET",
-    //   }),
-    //   providesTags: ["Bookings"],
-    // }),
+    // TECHNICIAN - GET MY BOOKINGS
+    getMyBookings: builder.query({
+      query: (params) => ({
+        url: "/booking/my-bookings",
+        method: "GET",
+        params: { ...params },
+      }),
+      providesTags: ["Bookings"],
+    }),
 
-    // createJob: builder.mutation({
-    //   query: (data) => ({
-    //     url: "/job/create",
-    //     method: "POST",
-    //     body: data,
-    //   }),
-    //   invalidatesTags: ["Jobs"],
-    // }),
-
-
-    // deleteJobPost: builder.mutation({
-    //   query: (id) => ({
-    //     url: `/job/delete/${id}`,
-    //     method: "DELETE",
-    //   }),
-    //   invalidatesTags: ["UserData"],
-    // }),
+    // TECHNICIAN - UPDATE BOOKING STATUS
+    updateBookingStatus: builder.mutation({
+      query: ({ id, status }) => ({
+        url: `/booking/${id}/status`,
+        method: "PATCH",
+        body: {
+          status,
+        },
+      }),
+      invalidatesTags: ["Bookings"],
+    }),
   }),
 });
 
 export const {
   useGetAllBookingsQuery,
-//   useGetSingleJobByIdQuery,
- 
+  useGetMyBookingsQuery,
+  useUpdateBookingStatusMutation,
 } = BookingsApi;
