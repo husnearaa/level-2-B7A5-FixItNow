@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import {
   useGetAllCategoriesQuery,
   useCreateCategoryMutation,
-} from "@/redux/api/categoriesApi.ts";
+} from "@/redux/api/categoriesApi";
 
 type Category = {
   id: string | number;
