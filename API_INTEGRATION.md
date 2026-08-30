@@ -12,6 +12,38 @@ https://level-2-b7-a4.vercel.app/auth/me
 
 
 <!-- admin -->
+
+<!-- get all users -->
 https://level-2-b7-a4.vercel.app/admin/users
 
+<!-- update user status -->
+https://level-2-b7-a4.vercel.app/admin/users/${id}
+
+
+<!-- get all booking -->
+
 https://level-2-b7-a4.vercel.app/admin/bookings
+
+<!-- get all categories -->
+
+https://level-2-b7-a4.vercel.app/admin/categories
+
+<!-- create categories -->
+
+https://level-2-b7-a4.vercel.app/admin/categories 
+
+
+
+<!-- technician -->
+
+<!-- get all technician -->
+https://level-2-b7-a4.vercel.app/technicians
+
+<!-- create technician profile -->
+https://level-2-b7-a4.vercel.app/technicians/profile
+
+<!-- update technician profile -->
+https://level-2-b7-a4.vercel.app/technicians/profile
+
+<!-- get technician profile by id -->
+https://level-2-b7-a4.vercel.app/technicians/${id}
