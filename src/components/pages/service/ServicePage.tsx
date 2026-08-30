@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -12,6 +12,9 @@ import {
   Star,
   X,
 } from "lucide-react";
+import { useGetAllServiceQuery } from "@/redux/api/serviceApi";
+
+
 
 /* =========================================================
    TYPES
@@ -20,179 +23,69 @@ import {
 interface Category {
   id: string;
   name: string;
+  description?: string;
 }
 
-interface Service {
+interface TechnicianUser {
   id: string;
-  title: string;
-  description: string;
-  category: Category;
-  startingPrice: number;
-  image: string;
-  location: string;
-  rating: number;
-  reviewCount: number;
+  name: string;
+  email: string;
+  phone?: string;
+  address?: string;
+  image?: string | null;
 }
 
-interface ServicesResponse {
-  success: boolean;
-  message: string;
-  data: Service[];
+interface Technician {
+  id: string;
+  userId: string;
+  bio: string;
+  experience: number;
+  skills: string[];
+  location: string;
+  hourlyRate: string;
+  averageRating: number;
+  totalReviews: number;
+  isVerified: boolean;
+  user: TechnicianUser;
+}
+
+interface ApiService {
+  id: string;
+  technicianId: string;
+  categoryId: string;
+  name: string;
+  description: string;
+  price: string;
+  location: string;
+  createdAt: string;
+  updatedAt: string;
+  category: Category;
+  technician: Technician;
 }
 
 /* =========================================================
-   DEMO DATA
-
-   Keep the structure similar to your future API response.
+   STATIC SERVICE IMAGES
+   Images remain frontend/static while service data is dynamic.
 ========================================================= */
 
-const demoServices: Service[] = [
-  {
-    id: "1",
-    title: "Plumbing Repair",
-    description:
-      "Professional solutions for leaking pipes, faucets, drainage issues, and other plumbing problems.",
-    category: {
-      id: "plumbing",
-      name: "Plumbing",
-    },
-    startingPrice: 500,
-    location: "Dhaka",
-    rating: 4.8,
-    reviewCount: 124,
-    image:
-      "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?q=80&w=1000&auto=format&fit=crop",
-  },
-  {
-    id: "2",
-    title: "Electrical Service",
-    description:
-      "Reliable electrical installation, repairs, wiring, and maintenance by qualified professionals.",
-    category: {
-      id: "electrical",
-      name: "Electrical",
-    },
-    startingPrice: 600,
-    location: "Dhaka",
-    rating: 4.7,
-    reviewCount: 98,
-    image:
-      "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=1000&auto=format&fit=crop",
-  },
-  {
-    id: "3",
-    title: "Home Cleaning",
-    description:
-      "Professional cleaning services to keep your home fresh, clean, and comfortable.",
-    category: {
-      id: "cleaning",
-      name: "Cleaning",
-    },
-    startingPrice: 800,
-    location: "Dhaka",
-    rating: 4.9,
-    reviewCount: 156,
-    image:
-      "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=1000&auto=format&fit=crop",
-  },
-  {
-    id: "4",
-    title: "Painting Service",
-    description:
-      "Refresh your home with professional interior and exterior painting services.",
-    category: {
-      id: "painting",
-      name: "Painting",
-    },
-    startingPrice: 1500,
-    location: "Gazipur",
-    rating: 4.6,
-    reviewCount: 74,
-    image:
-      "https://images.unsplash.com/photo-1562259949-a4dbd2d188b8?q=80&w=1000&auto=format&fit=crop",
-  },
-  {
-    id: "5",
-    title: "AC & Cooling Service",
-    description:
-      "Professional AC cleaning, installation, servicing, and repair for your home.",
-    category: {
-      id: "ac-cooling",
-      name: "AC & Cooling",
-    },
-    startingPrice: 700,
-    location: "Dhaka",
-    rating: 4.8,
-    reviewCount: 112,
-    image:
-      "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=1000&auto=format&fit=crop",
-  },
-  {
-    id: "6",
-    title: "Home Maintenance",
-    description:
-      "Reliable general maintenance and repair services to keep your home in great condition.",
-    category: {
-      id: "maintenance",
-      name: "Maintenance",
-    },
-    startingPrice: 500,
-    location: "Narayanganj",
-    rating: 4.5,
-    reviewCount: 67,
-    image:
-      "https://images.unsplash.com/photo-1504148455328-c376907d081c?q=80&w=1000&auto=format&fit=crop",
-  },
-  {
-    id: "7",
-    title: "Handyman Service",
-    description:
-      "Get help with furniture assembly, fixtures, shelves, and everyday home repairs.",
-    category: {
-      id: "handyman",
-      name: "Handyman",
-    },
-    startingPrice: 550,
-    location: "Gazipur",
-    rating: 4.7,
-    reviewCount: 89,
-    image:
-      "https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?q=80&w=1000&auto=format&fit=crop",
-  },
-  {
-    id: "8",
-    title: "Home Improvement",
-    description:
-      "Professional assistance for renovation, upgrades, and various home improvement projects.",
-    category: {
-      id: "home-improvement",
-      name: "Home Improvement",
-    },
-    startingPrice: 1200,
-    location: "Narayanganj",
-    rating: 4.9,
-    reviewCount: 91,
-    image:
-      "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?q=80&w=1000&auto=format&fit=crop",
-  },
+const serviceImages = [
+  "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?q=80&w=1000&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=1000&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=1000&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1562259949-a4dbd2d188b8?q=80&w=1000&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=1000&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1504148455328-c376907d081c?q=80&w=1000&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1586864387967-d02ef85d93e8?q=80&w=1000&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?q=80&w=1000&auto=format&fit=crop",
 ];
 
 /* =========================================================
-   DEMO API FUNCTION
-
-   Later replace this with your real API call.
+   IMAGE HELPER
+   Keeps images static but assigns them dynamically.
 ========================================================= */
 
-const getServices = async (): Promise<ServicesResponse> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        success: true,
-        message: "Services retrieved successfully",
-        data: demoServices,
-      });
-    }, 600);
-  });
+const getServiceImage = (index: number) => {
+  return serviceImages[index % serviceImages.length];
 };
 
 /* =========================================================
@@ -200,9 +93,6 @@ const getServices = async (): Promise<ServicesResponse> => {
 ========================================================= */
 
 const ServicesPage = () => {
-  const [services, setServices] = useState<Service[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedLocation, setSelectedLocation] = useState("all");
@@ -210,34 +100,29 @@ const ServicesPage = () => {
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
 
-  /* ---------------- Fetch Services ---------------- */
+  /* =======================================================
+     GET SERVICES FROM API
+  ======================================================= */
 
-  useEffect(() => {
-    const fetchServices = async () => {
-      try {
-        setIsLoading(true);
+  const {
+    data: servicesResponse,
+    isLoading,
+    isError,
+  } = useGetAllServiceQuery({});
 
-        const response = await getServices();
+  const services: ApiService[] = servicesResponse?.data ?? [];
 
-        if (response.success) {
-          setServices(response.data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch services:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchServices();
-  }, []);
-
-  /* ---------------- Categories ---------------- */
+  /* =======================================================
+     CATEGORIES
+  ======================================================= */
 
   const categories = useMemo(() => {
     const uniqueCategories = Array.from(
       new Map(
-        services.map((service) => [service.category.id, service.category]),
+        services.map((service) => [
+          service.category.id,
+          service.category,
+        ]),
       ).values(),
     );
 
@@ -250,42 +135,52 @@ const ServicesPage = () => {
     ];
   }, [services]);
 
-  /* ---------------- Locations ---------------- */
+  /* =======================================================
+     LOCATIONS
+  ======================================================= */
 
   const locations = useMemo(() => {
-    const uniqueLocations = [
-      ...new Set(services.map((service) => service.location)),
-    ];
+    const uniqueLocations = Array.from(
+      new Set(services.map((service) => service.location)),
+    );
 
     return ["all", ...uniqueLocations];
   }, [services]);
 
-  /* ---------------- Filter Services ---------------- */
+  /* =======================================================
+     FILTER SERVICES
+  ======================================================= */
 
   const filteredServices = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
     return services.filter((service) => {
+      const price = Number(service.price);
+      const rating = Number(service.technician?.averageRating ?? 0);
+
       const matchesSearch =
         !query ||
-        service.title.toLowerCase().includes(query) ||
+        service.name.toLowerCase().includes(query) ||
         service.description.toLowerCase().includes(query) ||
-        service.category.name.toLowerCase().includes(query);
+        service.category.name.toLowerCase().includes(query) ||
+        service.technician.user.name.toLowerCase().includes(query);
 
       const matchesCategory =
-        selectedCategory === "all" || service.category.id === selectedCategory;
+        selectedCategory === "all" ||
+        service.category.id === selectedCategory;
 
       const matchesLocation =
-        selectedLocation === "all" || service.location === selectedLocation;
+        selectedLocation === "all" ||
+        service.location === selectedLocation;
 
       const matchesRating =
-        selectedRating === 0 || service.rating >= selectedRating;
+        selectedRating === 0 || rating >= selectedRating;
 
       const matchesMinPrice =
-        !minPrice || service.startingPrice >= Number(minPrice);
+        !minPrice || price >= Number(minPrice);
 
       const matchesMaxPrice =
-        !maxPrice || service.startingPrice <= Number(maxPrice);
+        !maxPrice || price <= Number(maxPrice);
 
       return (
         matchesSearch &&
@@ -306,17 +201,21 @@ const ServicesPage = () => {
     maxPrice,
   ]);
 
-  /* ---------------- Check Active Filters ---------------- */
+  /* =======================================================
+     ACTIVE FILTERS
+  ======================================================= */
 
   const hasActiveFilters =
-    searchQuery ||
+    Boolean(searchQuery) ||
     selectedCategory !== "all" ||
     selectedLocation !== "all" ||
     selectedRating !== 0 ||
-    minPrice ||
-    maxPrice;
+    Boolean(minPrice) ||
+    Boolean(maxPrice);
 
-  /* ---------------- Reset Filters ---------------- */
+  /* =======================================================
+     RESET FILTERS
+  ======================================================= */
 
   const resetFilters = () => {
     setSearchQuery("");
@@ -327,48 +226,53 @@ const ServicesPage = () => {
     setMaxPrice("");
   };
 
+  /* =======================================================
+     RENDER
+  ======================================================= */
+
   return (
     <main className="min-h-screen bg-[#F6F8FA]">
       {/* =====================================================
-          PAGE HERO
+          HERO
       ====================================================== */}
 
-      <section className="bg-[#00224A] px-4 py-16 mt-20 lg:py-24">
+      <section className="mt-20 bg-[#00224A] px-4 py-16 lg:py-24">
         <div className="mx-auto max-w-[1440px]">
           <div className="mx-auto max-w-3xl text-center">
-            {/* Heading */}
             <h1
               className="
-          text-3xl
-          font-semibold
-          leading-[1.2]
-          tracking-tight
-          text-white
-          sm:text-4xl
-          md:text-5xl
-          lg:text-[48px]
-        "
+                text-3xl
+                font-semibold
+                leading-[1.2]
+                tracking-tight
+                text-white
+                sm:text-4xl
+                md:text-5xl
+                lg:text-[48px]
+              "
             >
               Find the Right Service
               <br className="hidden sm:block" />
-              <span className="text-[#EC620B]"> for Your Home</span>
+              <span className="text-[#EC620B]">
+                {" "}
+                for Your Home
+              </span>
             </h1>
 
-            {/* Description */}
             <p
               className="
-          mx-auto
-          mt-5
-          max-w-2xl
-          text-sm
-          leading-7
-          text-white/65
-          sm:text-base
-        "
+                mx-auto
+                mt-5
+                max-w-2xl
+                text-sm
+                leading-7
+                text-white/65
+                sm:text-base
+              "
             >
-              From plumbing and electrical work to cleaning, painting, and
-              repairs, find trusted professionals for every home service you
-              need.
+              From plumbing and electrical work to cleaning, painting,
+              and repairs, find trusted professionals for every home
+              service you need.
             </p>
           </div>
         </div>
@@ -380,7 +284,9 @@ const ServicesPage = () => {
 
       <section className="px-4 py-12 sm:py-16 lg:py-20">
         <div className="mx-auto w-full max-w-[1440px]">
-          {/* Search Bar */}
+          {/* =================================================
+              SEARCH
+          ================================================== */}
 
           <div className="mx-auto mb-6 max-w-3xl">
             <div className="relative">
@@ -392,7 +298,9 @@ const ServicesPage = () => {
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
+                onChange={(event) =>
+                  setSearchQuery(event.target.value)
+                }
                 placeholder="Search for plumbing, cleaning, electrical..."
                 className="
                   h-14
@@ -420,7 +328,15 @@ const ServicesPage = () => {
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-[#EC620B]"
+                  className="
+                    absolute
+                    right-4
+                    top-1/2
+                    -translate-y-1/2
+                    text-slate-400
+                    transition-colors
+                    hover:text-[#EC620B]
+                  "
                   aria-label="Clear search"
                 >
                   <X size={19} />
@@ -429,14 +345,28 @@ const ServicesPage = () => {
             </div>
           </div>
 
-          {/* =====================================================
-              ADVANCED FILTER BAR
-          ====================================================== */}
+          {/* =================================================
+              FILTER BAR
+          ================================================== */}
 
-          <div className="mb-12 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+          <div
+            className="
+              mb-12
+              rounded-2xl
+              border
+              border-slate-200
+              bg-white
+              p-4
+              shadow-sm
+              sm:p-5
+            "
+          >
             <div className="mb-4 flex items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                <SlidersHorizontal size={18} className="text-[#EC620B]" />
+                <SlidersHorizontal
+                  size={18}
+                  className="text-[#EC620B]"
+                />
 
                 <h2 className="font-semibold text-[#00224A]">
                   Filter Services
@@ -447,7 +377,16 @@ const ServicesPage = () => {
                 <button
                   type="button"
                   onClick={resetFilters}
-                  className="flex items-center gap-1.5 text-sm font-medium text-[#EC620B] transition-colors hover:text-[#C8520A]"
+                  className="
+                    flex
+                    items-center
+                    gap-1.5
+                    text-sm
+                    font-medium
+                    text-[#EC620B]
+                    transition-colors
+                    hover:text-[#C8520A]
+                  "
                 >
                   <X size={16} />
                   Clear Filters
@@ -455,7 +394,16 @@ const ServicesPage = () => {
               )}
             </div>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+            <div
+              className="
+                grid
+                grid-cols-1
+                gap-3
+                sm:grid-cols-2
+                lg:grid-cols-4
+                xl:grid-cols-5
+              "
+            >
               {/* Service Type */}
 
               <div>
@@ -486,7 +434,10 @@ const ServicesPage = () => {
                     "
                   >
                     {categories.map((category) => (
-                      <option key={category.id} value={category.id}>
+                      <option
+                        key={category.id}
+                        value={category.id}
+                      >
                         {category.name}
                       </option>
                     ))}
@@ -494,7 +445,14 @@ const ServicesPage = () => {
 
                   <ChevronDown
                     size={16}
-                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    className="
+                      pointer-events-none
+                      absolute
+                      right-3
+                      top-1/2
+                      -translate-y-1/2
+                      text-slate-400
+                    "
                   />
                 </div>
               </div>
@@ -509,7 +467,14 @@ const ServicesPage = () => {
                 <div className="relative">
                   <MapPin
                     size={16}
-                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    className="
+                      pointer-events-none
+                      absolute
+                      left-3
+                      top-1/2
+                      -translate-y-1/2
+                      text-slate-400
+                    "
                   />
 
                   <select
@@ -535,15 +500,27 @@ const ServicesPage = () => {
                     "
                   >
                     {locations.map((location) => (
-                      <option key={location} value={location}>
-                        {location === "all" ? "All Locations" : location}
+                      <option
+                        key={location}
+                        value={location}
+                      >
+                        {location === "all"
+                          ? "All Locations"
+                          : location}
                       </option>
                     ))}
                   </select>
 
                   <ChevronDown
                     size={16}
-                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    className="
+                      pointer-events-none
+                      absolute
+                      right-3
+                      top-1/2
+                      -translate-y-1/2
+                      text-slate-400
+                    "
                   />
                 </div>
               </div>
@@ -558,13 +535,23 @@ const ServicesPage = () => {
                 <div className="relative">
                   <Star
                     size={16}
-                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 fill-[#EC620B] text-[#EC620B]"
+                    className="
+                      pointer-events-none
+                      absolute
+                      left-3
+                      top-1/2
+                      -translate-y-1/2
+                      fill-[#EC620B]
+                      text-[#EC620B]
+                    "
                   />
 
                   <select
                     value={selectedRating}
                     onChange={(event) =>
-                      setSelectedRating(Number(event.target.value))
+                      setSelectedRating(
+                        Number(event.target.value),
+                      )
                     }
                     className="
                       h-11
@@ -591,7 +578,14 @@ const ServicesPage = () => {
 
                   <ChevronDown
                     size={16}
-                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    className="
+                      pointer-events-none
+                      absolute
+                      right-3
+                      top-1/2
+                      -translate-y-1/2
+                      text-slate-400
+                    "
                   />
                 </div>
               </div>
@@ -607,8 +601,10 @@ const ServicesPage = () => {
                   type="number"
                   min="0"
                   value={minPrice}
-                  onChange={(event) => setMinPrice(event.target.value)}
-                  placeholder="৳ Min"
+                  onChange={(event) =>
+                    setMinPrice(event.target.value)
+                  }
+                  placeholder="$ Min"
                   className="
                     h-11
                     w-full
@@ -638,8 +634,10 @@ const ServicesPage = () => {
                   type="number"
                   min="0"
                   value={maxPrice}
-                  onChange={(event) => setMaxPrice(event.target.value)}
-                  placeholder="৳ Max"
+                  onChange={(event) =>
+                    setMaxPrice(event.target.value)
+                  }
+                  placeholder="$ Max"
                   className="
                     h-11
                     w-full
@@ -660,14 +658,34 @@ const ServicesPage = () => {
             </div>
           </div>
 
-          {/* Section Heading */}
+          {/* =================================================
+              SECTION HEADING
+          ================================================== */}
 
-          <div className="mb-8 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+          <div
+            className="
+              mb-8
+              flex
+              flex-col
+              justify-between
+              gap-3
+              sm:flex-row
+              sm:items-end
+            "
+          >
             <div>
               <div className="mb-2 flex items-center gap-2">
                 <span className="h-1.5 w-1.5 rounded-full bg-[#EC620B]" />
 
-                <span className="text-xs font-medium uppercase tracking-[0.15em] text-[#EC620B]">
+                <span
+                  className="
+                    text-xs
+                    font-medium
+                    uppercase
+                    tracking-[0.15em]
+                    text-[#EC620B]
+                  "
+                >
                   Available Services
                 </span>
               </div>
@@ -677,25 +695,45 @@ const ServicesPage = () => {
               </h2>
             </div>
 
-            {!isLoading && (
+            {!isLoading && !isError && (
               <p className="text-sm text-slate-500">
                 Showing{" "}
                 <span className="font-semibold text-[#00224A]">
                   {filteredServices.length}
                 </span>{" "}
-                {filteredServices.length === 1 ? "service" : "services"}
+                {filteredServices.length === 1
+                  ? "service"
+                  : "services"}
               </p>
             )}
           </div>
 
-          {/* Loading State */}
+          {/* =================================================
+              LOADING
+          ================================================== */}
 
           {isLoading && (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div
+              className="
+                grid
+                grid-cols-1
+                gap-5
+                sm:grid-cols-2
+                lg:grid-cols-3
+                xl:grid-cols-4
+              "
+            >
               {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
                 <div
                   key={item}
-                  className="animate-pulse overflow-hidden rounded-2xl border border-slate-200 bg-white"
+                  className="
+                    animate-pulse
+                    overflow-hidden
+                    rounded-2xl
+                    border
+                    border-slate-200
+                    bg-white
+                  "
                 >
                   <div className="h-52 bg-slate-200" />
 
@@ -710,154 +748,374 @@ const ServicesPage = () => {
             </div>
           )}
 
-          {/* Service Cards */}
+          {/* =================================================
+              API ERROR
+          ================================================== */}
 
-          {!isLoading && filteredServices.length > 0 && (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {filteredServices.map((service) => (
-                <article
-                  key={service.id}
-                  className="
-                    group
-                    overflow-hidden
-                    rounded-2xl
-                    border
-                    border-slate-200
-                    bg-white
-                    transition-all
-                    duration-300
-                    hover:-translate-y-2
-                    hover:border-[#EC620B]/30
-                    hover:shadow-[0_16px_35px_rgba(0,34,74,0.08)]
-                  "
-                >
-                  {/* Image */}
-
-                  <div className="relative h-52 overflow-hidden">
-                    <Image
-                      src={service.image}
-                      alt={service.title}
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#00224A]/40 via-transparent to-transparent" />
-
-                    <div className="absolute bottom-3 left-3 rounded-full bg-white/95 px-3 py-1 text-xs font-medium text-[#00224A] shadow-sm">
-                      {service.category.name}
-                    </div>
-                  </div>
-
-                  {/* Content */}
-
-                  <div className="flex min-h-[250px] flex-col p-5">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-1">
-                        <Star
-                          size={16}
-                          fill="#EC620B"
-                          className="text-[#EC620B]"
-                        />
-
-                        <span className="text-sm font-semibold text-[#00224A]">
-                          {service.rating}
-                        </span>
-
-                        <span className="text-xs text-slate-400">
-                          ({service.reviewCount})
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-1 text-xs text-slate-500">
-                        <MapPin size={14} />
-                        {service.location}
-                      </div>
-                    </div>
-
-                    <h3 className="mt-4 text-lg font-semibold text-[#00224A]">
-                      {service.title}
-                    </h3>
-
-                    <p className="mt-2 flex-1 text-sm leading-6 text-slate-500">
-                      {service.description}
-                    </p>
-
-                    <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
-                      <div>
-                        <span className="block text-xs text-slate-400">
-                          Starting from
-                        </span>
-
-                        <span className="text-base font-semibold text-[#00224A]">
-                          ${service.startingPrice}
-                        </span>
-                      </div>
-
-                      <Link
-                        href={`/services/${service.id}`}
-                        className="
-                          group/link
-                          flex
-                          items-center
-                          gap-1
-                          text-sm
-                          font-semibold
-                          text-[#EC620B]
-                          transition-all
-                          hover:gap-2
-                        "
-                      >
-                        View Details
-                        <ArrowUpRight
-                          size={16}
-                          className="transition-transform duration-300 group-hover/link:rotate-45"
-                        />
-                      </Link>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-
-          {/* Empty State */}
-
-          {!isLoading && filteredServices.length === 0 && (
-            <div className="rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#EC620B]/10">
-                <Search size={25} className="text-[#EC620B]" />
+          {!isLoading && isError && (
+            <div className="rounded-2xl border border-red-100 bg-white px-6 py-16 text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50">
+                <X size={25} className="text-red-500" />
               </div>
 
               <h3 className="mt-5 text-xl font-semibold text-[#00224A]">
-                No Services Found
+                Failed to Load Services
               </h3>
 
               <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-slate-500">
-                Try changing your search or filters to find the service
-                you&apos;re looking for.
+                Something went wrong while loading services.
+                Please try again later.
               </p>
-
-              <button
-                type="button"
-                onClick={resetFilters}
-                className="
-                  mt-6
-                  rounded-md
-                  bg-[#00224A]
-                  px-5
-                  py-2.5
-                  text-sm
-                  font-medium
-                  text-white
-                  transition-colors
-                  hover:bg-[#00346F]
-                "
-              >
-                Clear All Filters
-              </button>
             </div>
           )}
+
+          {/* =================================================
+              SERVICE CARDS
+          ================================================== */}
+
+          {!isLoading &&
+            !isError &&
+            filteredServices.length > 0 && (
+              <div
+                className="
+                  grid
+                  grid-cols-1
+                  gap-5
+                  sm:grid-cols-2
+                  lg:grid-cols-3
+                  xl:grid-cols-4
+                "
+              >
+                {filteredServices.map((service, index) => {
+                  const rating = Number(
+                    service.technician?.averageRating ?? 0,
+                  );
+
+                  const price = Number(service.price);
+
+                  const reviewCount =
+                    service.technician?.totalReviews ?? 0;
+
+                  return (
+                    <article
+                      key={service.id}
+                      className="
+                        group
+                        overflow-hidden
+                        rounded-2xl
+                        border
+                        border-slate-200
+                        bg-white
+                        transition-all
+                        duration-300
+                        hover:-translate-y-2
+                        hover:border-[#EC620B]/30
+                        hover:shadow-[0_16px_35px_rgba(0,34,74,0.08)]
+                      "
+                    >
+                      {/* IMAGE */}
+
+                      <div className="relative h-52 overflow-hidden">
+                        <Image
+                          src={getServiceImage(index)}
+                          alt={service.name}
+                          fill
+                          sizes="
+                            (max-width: 640px) 100vw,
+                            (max-width: 1024px) 50vw,
+                            25vw
+                          "
+                          className="
+                            object-cover
+                            transition-transform
+                            duration-500
+                            group-hover:scale-110
+                          "
+                        />
+
+                        <div
+                          className="
+                            absolute
+                            inset-0
+                            bg-gradient-to-t
+                            from-[#00224A]/40
+                            via-transparent
+                            to-transparent
+                          "
+                        />
+
+                        {/* CATEGORY */}
+
+                        <div
+                          className="
+                            absolute
+                            bottom-3
+                            left-3
+                            rounded-full
+                            bg-white/95
+                            px-3
+                            py-1
+                            text-xs
+                            font-medium
+                            text-[#00224A]
+                            shadow-sm
+                          "
+                        >
+                          {service.category.name}
+                        </div>
+
+                        {/* VERIFIED */}
+
+                        {service.technician?.isVerified && (
+                          <div
+                            className="
+                              absolute
+                              right-3
+                              top-3
+                              rounded-full
+                              bg-[#EC620B]
+                              px-3
+                              py-1
+                              text-xs
+                              font-medium
+                              text-white
+                            "
+                          >
+                            Verified
+                          </div>
+                        )}
+                      </div>
+
+                      {/* CONTENT */}
+
+                      <div className="flex min-h-[270px] flex-col p-5">
+                        {/* RATING + LOCATION */}
+
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-1">
+                            <Star
+                              size={16}
+                              fill="#EC620B"
+                              className="text-[#EC620B]"
+                            />
+
+                            <span className="text-sm font-semibold text-[#00224A]">
+                              {rating > 0
+                                ? rating.toFixed(1)
+                                : "New"}
+                            </span>
+
+                            {reviewCount > 0 && (
+                              <span className="text-xs text-slate-400">
+                                ({reviewCount})
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-1 text-xs text-slate-500">
+                            <MapPin size={14} />
+
+                            <span className="truncate">
+                              {service.location}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* SERVICE NAME */}
+
+                        <h3
+                          className="
+                            mt-4
+                            line-clamp-2
+                            text-lg
+                            font-semibold
+                            text-[#00224A]
+                          "
+                        >
+                          {service.name}
+                        </h3>
+
+                        {/* DESCRIPTION */}
+
+                        <p
+                          className="
+                            mt-2
+                            line-clamp-3
+                            flex-1
+                            text-sm
+                            leading-6
+                            text-slate-500
+                          "
+                        >
+                          {service.description}
+                        </p>
+
+                        {/* TECHNICIAN */}
+
+                        <div className="mt-4 flex items-center gap-2">
+                          <div
+                            className="
+                              flex
+                              h-8
+                              w-8
+                              shrink-0
+                              items-center
+                              justify-center
+                              rounded-full
+                              bg-[#00224A]/10
+                              text-xs
+                              font-semibold
+                              text-[#00224A]
+                            "
+                          >
+                            {service.technician?.user?.name
+                              ?.charAt(0)
+                              ?.toUpperCase() || "T"}
+                          </div>
+
+                          <div className="min-w-0">
+                            <p className="truncate text-xs font-medium text-[#00224A]">
+                              {service.technician?.user?.name ||
+                                "Professional Technician"}
+                            </p>
+
+                            <p className="text-[11px] text-slate-400">
+                              {service.technician?.experience || 0}{" "}
+                              years experience
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* FOOTER */}
+
+                        <div
+                          className="
+                            mt-5
+                            flex
+                            items-center
+                            justify-between
+                            border-t
+                            border-slate-100
+                            pt-4
+                          "
+                        >
+                          <div>
+                            <span className="block text-xs text-slate-400">
+                              Starting from
+                            </span>
+
+                            <span className="text-base font-semibold text-[#00224A]">
+                              ${price.toLocaleString()}
+                            </span>
+                          </div>
+
+                          <Link
+                            href={`/services/${service.id}`}
+                            className="
+                              group/link
+                              flex
+                              items-center
+                              gap-1
+                              text-sm
+                              font-semibold
+                              text-[#EC620B]
+                              transition-all
+                              hover:gap-2
+                            "
+                          >
+                            View Details
+
+                            <ArrowUpRight
+                              size={16}
+                              className="
+                                transition-transform
+                                duration-300
+                                group-hover/link:rotate-45
+                              "
+                            />
+                          </Link>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+
+          {/* =================================================
+              EMPTY STATE
+          ================================================== */}
+
+          {!isLoading &&
+            !isError &&
+            filteredServices.length === 0 && (
+              <div
+                className="
+                  rounded-2xl
+                  border
+                  border-slate-200
+                  bg-white
+                  px-6
+                  py-16
+                  text-center
+                "
+              >
+                <div
+                  className="
+                    mx-auto
+                    flex
+                    h-14
+                    w-14
+                    items-center
+                    justify-center
+                    rounded-full
+                    bg-[#EC620B]/10
+                  "
+                >
+                  <Search
+                    size={25}
+                    className="text-[#EC620B]"
+                  />
+                </div>
+
+                <h3 className="mt-5 text-xl font-semibold text-[#00224A]">
+                  No Services Found
+                </h3>
+
+                <p
+                  className="
+                    mx-auto
+                    mt-2
+                    max-w-md
+                    text-sm
+                    leading-relaxed
+                    text-slate-500
+                  "
+                >
+                  Try changing your search or filters to find
+                  the service you&apos;re looking for.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={resetFilters}
+                  className="
+                    mt-6
+                    rounded-md
+                    bg-[#00224A]
+                    px-5
+                    py-2.5
+                    text-sm
+                    font-medium
+                    text-white
+                    transition-colors
+                    hover:bg-[#00346F]
+                  "
+                >
+                  Clear All Filters
+                </button>
+              </div>
+            )}
         </div>
       </section>
     </main>
@@ -865,3 +1123,4 @@ const ServicesPage = () => {
 };
 
 export default ServicesPage;
+
