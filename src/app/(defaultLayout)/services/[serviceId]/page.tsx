@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -10,89 +12,91 @@ import {
   Star,
   UserCheck,
 } from "lucide-react";
+import { useGetServiceByIdQuery } from "@/redux/api/serviceApi";
 
-interface ServiceDetails {
-  title: string;
-  category: string;
-  description: string;
-  longDescription: string;
-  image: string;
-  rating: number;
-  reviews: number;
-  price: number;
-  duration: string;
-  location: string;
-  technician: {
-    name: string;
-    image: string;
-    rating: number;
-    experience: string;
-    completedJobs: number;
-  };
-  features: string[];
-}
 
-const service: ServiceDetails = {
-  title: "Professional Home Cleaning",
-
-  category: "Cleaning",
-
-  description:
-    "Reliable and professional home cleaning service for a clean, fresh, and comfortable home.",
-
-  longDescription:
-    "Our professional home cleaning service is designed to make your home fresh, clean, and comfortable. Verified technicians carefully handle your cleaning needs using professional tools and reliable techniques.",
-
-  image:
-    "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=1200&auto=format&fit=crop",
-
-  rating: 4.9,
-
-  reviews: 128,
-
-  price: 1500,
-
-  duration: "2–3 hours",
-
-  location: "Available across Dhaka",
-
-  technician: {
-    name: "Sarah Ahmed",
-
-    image:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop",
-
-    rating: 4.9,
-
-    experience: "5+ years experience",
-
-    completedJobs: 320,
-  },
-
-  features: [
-    "Verified and experienced professional",
-    "Flexible scheduling",
-    "High-quality service",
-    "Transparent pricing",
-    "Easy online booking",
-    "Secure payment",
-  ],
-};
 
 interface PageProps {
-  params: Promise<{
+  params: {
     serviceId: string;
-  }>;
+  };
 }
 
-const ServiceDetailsPage = async ({ params }: PageProps) => {
-  const { serviceId } = await params;
+// Keep the image from your Services page.
+// The API does not currently return a service image.
+const serviceImages: Record<string, string> = {
+  "58cb149d-f2e1-4690-8fbd-9087ba8cf4b1":
+    "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=1200&auto=format&fit=crop",
+};
+
+const ServiceDetailsPage = ({ params }: PageProps) => {
+  const { serviceId } = params;
+
+  const {
+    data: response,
+    isLoading,
+    isError,
+  } = useGetServiceByIdQuery(serviceId);
+
+  const service = response?.data;
+
+  // Get image from the Services page/static image mapping
+  const serviceImage =
+    serviceImages[serviceId] ||
+    "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=1200&auto=format&fit=crop";
+
+  // Loading
+  if (isLoading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#EC620B]" />
+          <p className="mt-4 text-sm text-slate-500">
+            Loading service details...
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  // Error
+  if (isError || !service) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold text-[#00224A]">
+            Service not found
+          </h1>
+
+          <p className="mt-2 text-sm text-slate-500">
+            We couldn&apos;t find the service you&apos;re looking for.
+          </p>
+
+          <Link
+            href="/services"
+            className="mt-6 inline-flex items-center gap-2 rounded-md bg-[#EC620B] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#d95608]"
+          >
+            <ArrowLeft size={17} />
+            Back to Services
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  const price = Number(service.price);
+
+  const rating = Number(service.technician?.averageRating || 0);
+
+  const reviews = Number(service.technician?.totalReviews || 0);
+
+  const experience = service.technician?.experience || 0;
+
+  const completedJobs = 0;
 
   return (
     <main className="min-h-screen bg-gray-50">
-  
-          {/* SERVICE OVERVIEW */}
-  
+      {/* SERVICE OVERVIEW */}
       <section className="bg-gray-50 px-4 pb-10 pt-8 sm:pb-14 sm:pt-10 lg:pb-16 lg:pt-12">
         <div className="mx-auto w-full max-w-[1440px]">
           {/* Back Button */}
@@ -106,13 +110,11 @@ const ServiceDetailsPage = async ({ params }: PageProps) => {
 
           {/* Overview Card */}
           <div className="grid overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:grid-cols-2">
-               
-               {/* LEFT - IMAGE */}
-
+            {/* LEFT - IMAGE */}
             <div className="relative min-h-[320px] sm:min-h-[420px] lg:min-h-[560px]">
               <Image
-                src={service.image}
-                alt={service.title}
+                src={serviceImage}
+                alt={service.name}
                 fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 50vw"
@@ -125,7 +127,7 @@ const ServiceDetailsPage = async ({ params }: PageProps) => {
               {/* Category */}
               <div className="absolute left-5 top-5 sm:left-7 sm:top-7">
                 <span className="rounded-full bg-white px-4 py-2 text-xs font-semibold text-[#00224A] shadow-md sm:text-sm">
-                  {service.category}
+                  {service.category?.name || "Service"}
                 </span>
               </div>
 
@@ -137,23 +139,21 @@ const ServiceDetailsPage = async ({ params }: PageProps) => {
                   className="text-[#EC620B]"
                 />
 
-                <span className="font-semibold">{service.rating}</span>
+                <span className="font-semibold">
+                  {rating > 0 ? rating.toFixed(1) : "New"}
+                </span>
 
                 <span className="text-white/60">
-                  ({service.reviews} reviews)
+                  ({reviews} reviews)
                 </span>
               </div>
             </div>
 
-            {/* =================================================
-                RIGHT - SERVICE INFORMATION
-            ================================================== */}
-
+            {/* RIGHT - SERVICE INFORMATION */}
             <div className="flex flex-col justify-center p-6 sm:p-8 lg:p-12 xl:p-16">
-
               {/* Title */}
               <h1 className="max-w-xl text-3xl font-semibold leading-[1.15] tracking-tight text-[#00224A] sm:text-4xl lg:text-[46px]">
-                {service.title}
+                {service.name}
               </h1>
 
               {/* Description */}
@@ -169,7 +169,7 @@ const ServiceDetailsPage = async ({ params }: PageProps) => {
 
                 <div className="mt-1 flex items-end gap-2">
                   <span className="text-3xl font-bold text-[#00224A] sm:text-4xl">
-                    ${service.price.toLocaleString()}
+                    ${price.toLocaleString()}
                   </span>
 
                   <span className="mb-1 text-sm text-slate-400">
@@ -187,10 +187,10 @@ const ServiceDetailsPage = async ({ params }: PageProps) => {
                   </div>
 
                   <div>
-                    <p className="text-xs text-slate-400">Duration</p>
+                    <p className="text-xs text-slate-400">Experience</p>
 
                     <p className="mt-0.5 text-sm font-semibold text-[#00224A]">
-                      {service.duration}
+                      {experience}+ years
                     </p>
                   </div>
                 </div>
@@ -202,10 +202,12 @@ const ServiceDetailsPage = async ({ params }: PageProps) => {
                   </div>
 
                   <div>
-                    <p className="text-xs text-slate-400">Availability</p>
+                    <p className="text-xs text-slate-400">
+                      Availability
+                    </p>
 
                     <p className="mt-0.5 text-sm font-semibold text-[#00224A]">
-                      Dhaka
+                      {service.location}
                     </p>
                   </div>
                 </div>
@@ -214,14 +216,22 @@ const ServiceDetailsPage = async ({ params }: PageProps) => {
               {/* Technician Preview */}
               <div className="mt-7 flex items-center justify-between rounded-xl border border-slate-200 p-4">
                 <div className="flex items-center gap-3">
-                  <div className="relative h-11 w-11 overflow-hidden rounded-full">
-                    <Image
-                      src={service.technician.image}
-                      alt={service.technician.name}
-                      fill
-                      sizes="44px"
-                      className="object-cover"
-                    />
+                  <div className="relative h-11 w-11 overflow-hidden rounded-full bg-slate-100">
+                    {service.technician?.user?.image ? (
+                      <Image
+                        src={service.technician.user.image}
+                        alt={service.technician.user.name}
+                        fill
+                        sizes="44px"
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-[#00224A]">
+                        {service.technician?.user?.name
+                          ?.charAt(0)
+                          ?.toUpperCase()}
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -230,7 +240,8 @@ const ServiceDetailsPage = async ({ params }: PageProps) => {
                     </p>
 
                     <p className="mt-0.5 text-sm font-semibold text-[#00224A]">
-                      {service.technician.name}
+                      {service.technician?.user?.name ||
+                        "Professional Technician"}
                     </p>
                   </div>
                 </div>
@@ -243,14 +254,14 @@ const ServiceDetailsPage = async ({ params }: PageProps) => {
                   />
 
                   <span className="text-sm font-semibold text-[#00224A]">
-                    {service.technician.rating}
+                    {rating > 0 ? rating.toFixed(1) : "New"}
                   </span>
                 </div>
               </div>
 
               {/* Booking Button */}
               <Link
-                  href="/booking"
+                href={`/booking?serviceId=${service.id}`}
                 className="group mt-7 flex w-full items-center justify-center gap-2 rounded-md bg-[#EC620B] px-6 py-3.5 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:bg-[#d95608] hover:shadow-lg active:scale-[0.98]"
               >
                 Book This Service
@@ -264,25 +275,25 @@ const ServiceDetailsPage = async ({ params }: PageProps) => {
 
               {/* Trust Text */}
               <div className="mt-4 flex items-center justify-center gap-2 text-xs text-slate-400">
-                <ShieldCheck size={15} className="text-[#EC620B]" />
-                Verified professionals & secure booking
+                <ShieldCheck
+                  size={15}
+                  className="text-[#EC620B]"
+                />
+
+                {service.technician?.isVerified
+                  ? "Verified professional & secure booking"
+                  : "Secure booking with trusted professionals"}
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* =====================================================
-          MAIN CONTENT
-      ====================================================== */}
-
-      <section className=" pb-16 pt-2 sm:pb-20 sm:pt-4 lg:pb-24 lg:pt-6">
+      {/* MAIN CONTENT */}
+      <section className="pb-16 pt-2 sm:pb-20 sm:pt-4 lg:pb-24 lg:pt-6">
         <div className="mx-auto w-full">
           <div className="container space-y-6">
-            {/* =================================================
-                ABOUT SERVICE
-            ================================================== */}
-
+            {/* ABOUT SERVICE */}
             <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
               <div className="mb-5 flex items-center gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#00224A]/5 text-[#00224A]">
@@ -301,14 +312,11 @@ const ServiceDetailsPage = async ({ params }: PageProps) => {
               </div>
 
               <p className="max-w-4xl text-sm leading-7 text-slate-600 sm:text-base">
-                {service.longDescription}
+                {service.description}
               </p>
             </div>
 
-            {/* =================================================
-                WHAT'S INCLUDED
-            ================================================== */}
-
+            {/* WHAT'S INCLUDED */}
             <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
               <div className="mb-6">
                 <p className="text-xs font-medium uppercase tracking-[0.15em] text-[#EC620B]">
@@ -321,7 +329,14 @@ const ServiceDetailsPage = async ({ params }: PageProps) => {
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
-                {service.features.map((feature) => (
+                {[
+                  "Verified and experienced professional",
+                  "Flexible scheduling",
+                  "Professional service",
+                  "Transparent pricing",
+                  "Easy online booking",
+                  "Secure payment",
+                ].map((feature) => (
                   <div
                     key={feature}
                     className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4 transition-all duration-300 hover:border-[#EC620B]/20 hover:bg-[#EC620B]/5"
@@ -339,10 +354,7 @@ const ServiceDetailsPage = async ({ params }: PageProps) => {
               </div>
             </div>
 
-            {/* =================================================
-                TECHNICIAN
-            ================================================== */}
-
+            {/* TECHNICIAN */}
             <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
               <div className="mb-6">
                 <div className="mb-2 flex items-center gap-2">
@@ -360,24 +372,33 @@ const ServiceDetailsPage = async ({ params }: PageProps) => {
 
               <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
                 {/* Technician Image */}
-                <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border-2 border-white shadow-md">
-                  <Image
-                    src={service.technician.image}
-                    alt={service.technician.name}
-                    fill
-                    sizes="80px"
-                    className="object-cover"
-                  />
+                <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border-2 border-white bg-slate-100 shadow-md">
+                  {service.technician?.user?.image ? (
+                    <Image
+                      src={service.technician.user.image}
+                      alt={service.technician.user.name}
+                      fill
+                      sizes="80px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-2xl font-semibold text-[#00224A]">
+                      {service.technician?.user?.name
+                        ?.charAt(0)
+                        ?.toUpperCase()}
+                    </div>
+                  )}
                 </div>
 
                 {/* Technician Information */}
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-[#00224A]">
-                    {service.technician.name}
+                    {service.technician?.user?.name ||
+                      "Professional Technician"}
                   </h3>
 
                   <p className="mt-1 text-sm text-slate-500">
-                    {service.technician.experience}
+                    {experience}+ years experience
                   </p>
 
                   <div className="mt-3 flex flex-wrap items-center gap-4">
@@ -389,12 +410,14 @@ const ServiceDetailsPage = async ({ params }: PageProps) => {
                       />
 
                       <span className="font-medium text-[#00224A]">
-                        {service.technician.rating}
+                        {rating > 0 ? rating.toFixed(1) : "New"}
                       </span>
                     </span>
 
                     <span className="text-sm text-slate-500">
-                      {service.technician.completedJobs}+ completed jobs
+                      {completedJobs > 0
+                        ? `${completedJobs}+ completed jobs`
+                        : "Professional technician"}
                     </span>
                   </div>
                 </div>
@@ -406,7 +429,9 @@ const ServiceDetailsPage = async ({ params }: PageProps) => {
                     className="text-[#EC620B]"
                   />
 
-                  Verified
+                  {service.technician?.isVerified
+                    ? "Verified"
+                    : "Professional"}
                 </div>
               </div>
             </div>
@@ -418,3 +443,4 @@ const ServiceDetailsPage = async ({ params }: PageProps) => {
 };
 
 export default ServiceDetailsPage;
+

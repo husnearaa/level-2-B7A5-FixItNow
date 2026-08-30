@@ -3,7 +3,7 @@ import CategoriesSection from "@/components/Home/CategoriesSection";
 import PopularServices from "@/components/Home/PopularServices";
 import HowItWorks from "@/components/Home/HowItWorks";
 import WhyChooseFixItNow from "@/components/Home/WhyChooseFixItNow";
-import ReviewsSection from "@/components/Home/ReviewsSection";
+// import ReviewsSection from "@/components/Home/ReviewsSection";
 import FinalCTA from "@/components/Home/FinalCTA";
 
 const HomePage = () => {
@@ -14,7 +14,7 @@ const HomePage = () => {
       <PopularServices />
       <HowItWorks />
       <WhyChooseFixItNow />
-      <ReviewsSection />
+      {/* <ReviewsSection /> */}
       <FinalCTA />
     </div>
   );
