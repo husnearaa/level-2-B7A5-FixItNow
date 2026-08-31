@@ -1,5 +1,6 @@
 "use client";
 
+import { use } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -17,9 +18,9 @@ import { useGetServiceByIdQuery } from "@/redux/api/serviceApi";
 
 
 interface PageProps {
-  params: {
+  params: Promise<{
     serviceId: string;
-  };
+  }>;
 }
 
 // Keep the image from your Services page.
@@ -29,8 +30,9 @@ const serviceImages: Record<string, string> = {
     "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=1200&auto=format&fit=crop",
 };
 
+
 const ServiceDetailsPage = ({ params }: PageProps) => {
-  const { serviceId } = params;
+  const { serviceId } = use(params);
 
   const {
     data: response,
