@@ -1,113 +1,428 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 "use client";
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 import {
   ArrowLeft,
   ArrowUpRight,
   CalendarDays,
+  CheckCircle2,
+  Clock3,
   MapPin,
   ShieldCheck,
   Star,
 } from "lucide-react";
 
+import { useGetServiceByIdQuery } from "@/redux/api/serviceApi";
+import { useCreateBookingMutation } from "@/redux/api/bookingApi";
+import { useGetTechnicianAvailabilityQuery } from "@/redux/api/availabilityApi";
+import { useCreatePaymentMutation } from "@/redux/api/paymentApi";
+
+
 interface BookingFormData {
   date: string;
-  time: string;
+  availabilityId: string;
   address: string;
   notes: string;
 }
 
-const timeSlots = [
-  "09:00 AM",
-  "10:30 AM",
-  "12:00 PM",
-  "02:00 PM",
-  "03:30 PM",
-  "05:00 PM",
-];
+interface Availability {
+  id: string;
+  technicianId: string;
+  startTime: string;
+  endTime: string;
+  isBooked: boolean;
+}
 
-const service = {
-  id: "service-001",
-  title: "Professional Home Cleaning",
-  category: "Cleaning",
-  image:
-    "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=900&auto=format&fit=crop",
-  price: 150,
-  duration: "2–3 hours",
-  rating: 4.9,
-  reviews: 128,
-  location: "Dhaka",
-  technician: {
-    name: "Sarah Ahmed",
-    image:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop",
-    rating: 4.9,
-    experience: "5+ years experience",
-  },
+const SERVICE_IMAGE =
+  "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=900&auto=format&fit=crop";
+
+const TECHNICIAN_IMAGE =
+  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop";
+
+// Get YYYY-MM-DD from an ISO date
+const getDateFromISO = (dateString: string) => {
+  return dateString.split("T")[0];
+};
+
+// Format date for displaying in the dropdown
+const formatDate = (date: string) => {
+  return new Date(`${date}T00:00:00`).toLocaleDateString("en-US", {
+    weekday: "short",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+};
+
+// Format time without timezone conversion
+const formatTime = (dateString: string) => {
+  const time = dateString.split("T")[1]?.substring(0, 5);
+
+  if (!time) return "";
+
+  const [hoursString, minutes] = time.split(":");
+
+  let hours = Number(hoursString);
+
+  const modifier = hours >= 12 ? "PM" : "AM";
+
+  hours = hours % 12;
+  hours = hours || 12;
+
+  return `${String(hours).padStart(2, "0")}:${minutes} ${modifier}`;
 };
 
 const BookingPage = () => {
-  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const serviceId = searchParams.get("serviceId");
+
+  // ============================================================
+  // GET SERVICE
+  // ============================================================
+
+  const {
+    data: serviceResponse,
+    isLoading: isServiceLoading,
+    isError: isServiceError,
+  } = useGetServiceByIdQuery(serviceId!, {
+    skip: !serviceId,
+  });
+
+  const service = serviceResponse?.data;
+
+  // Technician ID comes from the service
+  const technicianId = service?.technicianId || service?.technician?.id;
+
+  // ============================================================
+  // GET TECHNICIAN AVAILABILITY
+  // ============================================================
+
+  const {
+    data: availabilityResponse,
+    isLoading: isAvailabilityLoading,
+    isError: isAvailabilityError,
+  } = useGetTechnicianAvailabilityQuery(
+    {
+      id: technicianId!,
+    },
+    {
+      skip: !technicianId,
+    }
+  );
+
+  const availabilityData: Availability[] =
+    availabilityResponse?.data || [];
+
+  // Only show slots that haven't been booked
+  const availableSlots = availabilityData.filter(
+    (slot) => !slot.isBooked
+  );
+
+  // ============================================================
+  // CREATE BOOKING
+  // ============================================================
+
+  const [createBooking, { isLoading: isBookingLoading }] =
+    useCreateBookingMutation();
+
+  // ============================================================
+  // CREATE PAYMENT SESSION
+  // ============================================================
+
+  const [
+    createPaymentSession,
+    { isLoading: isPaymentLoading },
+  ] = useCreatePaymentMutation();
+
+  // ============================================================
+  // FORM
+  // ============================================================
 
   const {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<BookingFormData>({
     defaultValues: {
       date: "",
-      time: "",
+      availabilityId: "",
       address: "",
       notes: "",
     },
   });
 
-  const selectedTime = watch("time");
   const selectedDate = watch("date");
+  const selectedAvailabilityId = watch("availabilityId");
 
-  const onSubmit = (data: BookingFormData) => {
-    // Prepare booking information
-    const bookingData = {
-      serviceId: service.id,
-      serviceName: service.title,
-      price: service.price,
-      date: data.date,
-      time: data.time,
-      address: data.address,
-      notes: data.notes,
-    };
+  // ============================================================
+  // AVAILABLE DATES
+  // ============================================================
 
-    console.log("Booking Data:", bookingData);
+  const availableDates = Array.from(
+    new Set(
+      availableSlots.map((slot) =>
+        getDateFromISO(slot.startTime)
+      )
+    )
+  ).sort();
 
-    /*
-      Pass booking information to payment page.
+  // ============================================================
+  // AVAILABLE TIMES FOR SELECTED DATE
+  // ============================================================
 
-      URLSearchParams automatically handles spaces,
-      special characters, etc.
-    */
-    const params = new URLSearchParams({
-      serviceId: service.id,
-      serviceName: service.title,
-      price: service.price.toString(),
-      date: data.date,
-      time: data.time,
-      address: data.address,
-      notes: data.notes || "",
-    });
+  const availableTimeSlots = selectedDate
+    ? availableSlots.filter(
+        (slot) =>
+          getDateFromISO(slot.startTime) === selectedDate
+      )
+    : [];
 
-    router.push(`/payment?${params.toString()}`);
+  // Find selected availability object
+  const selectedSlot = availableSlots.find(
+    (slot) => slot.id === selectedAvailabilityId
+  );
+
+  // ============================================================
+  // SUBMIT BOOKING + STRIPE PAYMENT
+  // ============================================================
+
+  const onSubmit = async (data: BookingFormData) => {
+    if (!service) return;
+
+    if (!technicianId) {
+      toast.error("Technician information is not available.");
+      return;
+    }
+
+    const selectedAvailability = availableSlots.find(
+      (slot) => slot.id === data.availabilityId
+    );
+
+    if (!selectedAvailability) {
+      toast.error("Please select an available time slot.");
+      return;
+    }
+
+    try {
+      // ========================================================
+      // STEP 1: CREATE BOOKING
+      // ========================================================
+
+      const bookingPayload = {
+        technicianId,
+        serviceId: service.id,
+        availabilityId: selectedAvailability.id,
+        scheduledAt: selectedAvailability.startTime,
+        customerNote: data.notes || "",
+      };
+
+      console.log("Creating booking:", bookingPayload);
+
+      const bookingResponse = await createBooking(
+        bookingPayload
+      ).unwrap();
+
+      console.log("Booking created:", bookingResponse);
+
+      // Get booking ID
+      const bookingId = bookingResponse?.data?.id;
+
+      if (!bookingId) {
+        toast.error(
+          "Booking was created but booking ID was not found."
+        );
+        return;
+      }
+
+      // ========================================================
+      // STEP 2: CREATE STRIPE PAYMENT SESSION
+      // ========================================================
+
+      toast.success(
+        "Booking created! Redirecting to secure payment..."
+      );
+
+      console.log(
+        "Creating payment session for booking:",
+        bookingId
+      );
+
+      const paymentResponse = await createPaymentSession({
+        bookingId,
+      }).unwrap();
+
+      console.log(
+        "Payment session created:",
+        paymentResponse
+      );
+
+      // ========================================================
+      // STEP 3: GET STRIPE CHECKOUT URL
+      // ========================================================
+
+      const checkoutUrl =
+        paymentResponse?.data?.checkoutUrl;
+
+      if (!checkoutUrl) {
+        toast.error(
+          "Payment checkout URL was not returned."
+        );
+        return;
+      }
+
+      // ========================================================
+      // STEP 4: REDIRECT DIRECTLY TO STRIPE
+      // ========================================================
+
+      window.location.href = checkoutUrl;
+    } catch (error: any) {
+      console.error(
+        "Booking/payment failed:",
+        error
+      );
+
+      const errorMessage =
+        error?.data?.message ||
+        error?.error?.data?.message ||
+        error?.message ||
+        "Something went wrong while creating your booking.";
+
+      toast.error(errorMessage);
+    }
   };
+
+  // ============================================================
+  // LOADING
+  // ============================================================
+
+  if (isServiceLoading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gray-100">
+        <div className="text-center">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#EC620B]" />
+
+          <p className="mt-4 text-sm text-slate-500">
+            Loading service...
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  // ============================================================
+  // NO SERVICE ID
+  // ============================================================
+
+  if (!serviceId) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold text-[#00224A]">
+            Service not found
+          </h1>
+
+          <p className="mt-2 text-sm text-slate-500">
+            No service ID was provided.
+          </p>
+
+          <Link
+            href="/services"
+            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#EC620B] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#d95608]"
+          >
+            <ArrowLeft size={17} />
+            Back to Services
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  // ============================================================
+  // SERVICE ERROR
+  // ============================================================
+
+  if (isServiceError || !service) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold text-[#00224A]">
+            Service not found
+          </h1>
+
+          <p className="mt-2 text-sm text-slate-500">
+            We could not find the requested service.
+          </p>
+
+          <Link
+            href="/services"
+            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#EC620B] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#d95608]"
+          >
+            <ArrowLeft size={17} />
+            Back to Services
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  // ============================================================
+  // SERVICE DATA
+  // ============================================================
+
+  const serviceName = service.name;
+
+  const categoryName =
+    service.category?.name || "Service";
+
+  const servicePrice = Number(service.price);
+
+  const serviceLocation =
+    service.location || "Dhaka";
+
+  const technicianName =
+    service.technician?.user?.name ||
+    "Professional Technician";
+
+  const technicianImage =
+    service.technician?.user?.image ||
+    TECHNICIAN_IMAGE;
+
+  const technicianExperience =
+    service.technician?.experience
+      ? `${service.technician.experience}+ years experience`
+      : "Experienced professional";
+
+  const technicianRating =
+    Number(service.technician?.averageRating) || 0;
+
+  const totalReviews =
+    service.technician?.totalReviews || 0;
+
+  const technicianLocation =
+    service.technician?.location ||
+    serviceLocation;
+
+  // ============================================================
+  // UI
+  // ============================================================
 
   return (
     <main className="min-h-screen bg-gray-100 py-16">
       <section className="px-4 py-10 sm:py-12 lg:py-14">
         <div className="mx-auto w-full max-w-6xl">
-          {/* Back */}
+
+          {/* BACK */}
+
           <Link
             href="/services"
             className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-[#EC620B]"
@@ -117,22 +432,24 @@ const BookingPage = () => {
           </Link>
 
           <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
+
             {/* =====================================================
-                LEFT — BOOKING FORM
+                BOOKING FORM
             ====================================================== */}
 
             <form
               onSubmit={handleSubmit(onSubmit)}
               className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8"
             >
-              {/* FORM TITLE */}
+
               <div className="border-b border-slate-100 pb-6">
                 <h1 className="text-2xl font-semibold tracking-tight text-[#00224A] sm:text-3xl">
                   Schedule Your Service
                 </h1>
 
                 <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500">
-                  Select your preferred date, time, and service location.
+                  Select an available date and time provided by the
+                  technician.
                 </p>
               </div>
 
@@ -145,7 +462,31 @@ const BookingPage = () => {
                   Date & Time
                 </h2>
 
+                {isAvailabilityLoading && (
+                  <div className="mb-5 flex items-center gap-2 text-sm text-slate-500">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-[#EC620B]" />
+                    Loading available dates...
+                  </div>
+                )}
+
+                {isAvailabilityError && (
+                  <div className="mb-5 rounded-lg bg-red-50 p-3 text-sm text-red-600">
+                    Unable to load technician availability.
+                    Please try again.
+                  </div>
+                )}
+
+                {!isAvailabilityLoading &&
+                  !isAvailabilityError &&
+                  availableDates.length === 0 && (
+                    <div className="mb-5 rounded-lg bg-orange-50 p-4 text-sm text-orange-700">
+                      This technician currently has no
+                      available time slots.
+                    </div>
+                  )}
+
                 <div className="grid gap-5 sm:grid-cols-2">
+
                   {/* DATE */}
 
                   <div>
@@ -153,7 +494,7 @@ const BookingPage = () => {
                       htmlFor="date"
                       className="mb-2 block text-sm font-medium text-[#00224A]"
                     >
-                      Service Date
+                      Available Date
                     </label>
 
                     <div className="relative">
@@ -162,18 +503,42 @@ const BookingPage = () => {
                         className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
                       />
 
-                      <input
+                      <select
                         id="date"
-                        type="date"
                         {...register("date", {
-                          required: "Please select a service date",
+                          required:
+                            "Please select an available date",
+
+                          onChange: () => {
+                            setValue(
+                              "availabilityId",
+                              ""
+                            );
+                          },
                         })}
-                        className={`w-full rounded-lg border bg-white py-3 pl-10 pr-3 text-sm text-slate-700 outline-none transition focus:border-[#EC620B] focus:ring-2 focus:ring-[#EC620B]/10 ${
+                        disabled={
+                          isAvailabilityLoading ||
+                          availableDates.length === 0
+                        }
+                        className={`w-full rounded-lg border bg-white py-3 pl-10 pr-3 text-sm text-slate-700 outline-none transition focus:border-[#EC620B] focus:ring-2 focus:ring-[#EC620B]/10 disabled:cursor-not-allowed disabled:bg-slate-100 ${
                           errors.date
                             ? "border-red-400"
                             : "border-slate-200"
                         }`}
-                      />
+                      >
+                        <option value="">
+                          Select an available date
+                        </option>
+
+                        {availableDates.map((date) => (
+                          <option
+                            key={date}
+                            value={date}
+                          >
+                            {formatDate(date)}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
                     {errors.date && (
@@ -187,35 +552,68 @@ const BookingPage = () => {
 
                   <div>
                     <label
-                      htmlFor="time"
+                      htmlFor="availabilityId"
                       className="mb-2 block text-sm font-medium text-[#00224A]"
                     >
-                      Preferred Time
+                      Available Time
                     </label>
 
-                    <select
-                      id="time"
-                      {...register("time", {
-                        required: "Please select a time",
-                      })}
-                      className={`w-full rounded-lg border bg-white px-3.5 py-3 text-sm text-slate-700 outline-none transition focus:border-[#EC620B] focus:ring-2 focus:ring-[#EC620B]/10 ${
-                        errors.time
-                          ? "border-red-400"
-                          : "border-slate-200"
-                      }`}
-                    >
-                      <option value="">Select a time</option>
+                    <div className="relative">
+                      <Clock3
+                        size={18}
+                        className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                      />
 
-                      {timeSlots.map((time) => (
-                        <option key={time} value={time}>
-                          {time}
+                      <select
+                        id="availabilityId"
+                        {...register(
+                          "availabilityId",
+                          {
+                            required:
+                              "Please select an available time",
+                          }
+                        )}
+                        disabled={
+                          !selectedDate ||
+                          availableTimeSlots.length === 0
+                        }
+                        className={`w-full rounded-lg border bg-white py-3 pl-10 pr-3 text-sm text-slate-700 outline-none transition focus:border-[#EC620B] focus:ring-2 focus:ring-[#EC620B]/10 disabled:cursor-not-allowed disabled:bg-slate-100 ${
+                          errors.availabilityId
+                            ? "border-red-400"
+                            : "border-slate-200"
+                        }`}
+                      >
+                        <option value="">
+                          {!selectedDate
+                            ? "Select a date first"
+                            : "Select an available time"}
                         </option>
-                      ))}
-                    </select>
 
-                    {errors.time && (
+                        {availableTimeSlots.map(
+                          (slot) => (
+                            <option
+                              key={slot.id}
+                              value={slot.id}
+                            >
+                              {formatTime(
+                                slot.startTime
+                              )}{" "}
+                              -{" "}
+                              {formatTime(
+                                slot.endTime
+                              )}
+                            </option>
+                          )
+                        )}
+                      </select>
+                    </div>
+
+                    {errors.availabilityId && (
                       <p className="mt-1.5 text-xs text-red-500">
-                        {errors.time.message}
+                        {
+                          errors.availabilityId
+                            .message
+                        }
                       </p>
                     )}
                   </div>
@@ -250,7 +648,8 @@ const BookingPage = () => {
                       rows={2}
                       placeholder="Enter your complete service address"
                       {...register("address", {
-                        required: "Please enter your service address",
+                        required:
+                          "Please enter your service address",
                       })}
                       className={`w-full resize-none rounded-lg border py-3 pl-10 pr-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#EC620B] focus:ring-2 focus:ring-[#EC620B]/10 ${
                         errors.address
@@ -269,7 +668,7 @@ const BookingPage = () => {
               </div>
 
               {/* =====================================================
-                  ADDITIONAL INFORMATION
+                  NOTES
               ====================================================== */}
 
               <div className="border-b border-slate-100 py-6">
@@ -299,15 +698,33 @@ const BookingPage = () => {
               <div className="pt-6">
                 <button
                   type="submit"
-                  className="group flex w-full items-center justify-center gap-2 rounded-lg bg-[#EC620B] px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:bg-[#d95608] hover:shadow-md active:scale-[0.98]"
+                  disabled={
+                    isBookingLoading ||
+                    isPaymentLoading ||
+                    availableDates.length === 0
+                  }
+                  className="group flex w-full items-center justify-center gap-2 rounded-lg bg-[#EC620B] px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:bg-[#d95608] hover:shadow-md active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Continue to Payment
+                  {isBookingLoading ||
+                  isPaymentLoading ? (
+                    <>
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
 
-                  <ArrowUpRight
-                    size={18}
-                    strokeWidth={2.5}
-                    className="transition-transform duration-300 group-hover:rotate-45"
-                  />
+                      {isBookingLoading
+                        ? "Creating Booking..."
+                        : "Redirecting to Payment..."}
+                    </>
+                  ) : (
+                    <>
+                      Request Booking & Pay
+
+                      <ArrowUpRight
+                        size={18}
+                        strokeWidth={2.5}
+                        className="transition-transform duration-300 group-hover:rotate-45"
+                      />
+                    </>
+                  )}
                 </button>
 
                 <div className="mt-3 flex items-center justify-center gap-2 text-xs text-slate-400">
@@ -316,23 +733,22 @@ const BookingPage = () => {
                     className="text-[#EC620B]"
                   />
 
-                  Secure booking and payment
+                  Secure payment powered by Stripe
                 </div>
               </div>
             </form>
 
             {/* =====================================================
-                RIGHT — SERVICE SUMMARY
+                SERVICE SUMMARY
             ====================================================== */}
 
             <aside className="lg:sticky lg:top-24">
               <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                {/* IMAGE */}
 
                 <div className="relative h-52">
                   <Image
-                    src={service.image}
-                    alt={service.title}
+                    src={SERVICE_IMAGE}
+                    alt={serviceName}
                     fill
                     priority
                     sizes="(max-width: 1024px) 100vw, 380px"
@@ -343,16 +759,15 @@ const BookingPage = () => {
 
                   <div className="absolute bottom-4 left-4">
                     <span className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-[#00224A]">
-                      {service.category}
+                      {categoryName}
                     </span>
                   </div>
                 </div>
 
-                {/* CONTENT */}
-
                 <div className="p-6">
+
                   <h2 className="text-xl font-semibold leading-snug text-[#00224A]">
-                    {service.title}
+                    {serviceName}
                   </h2>
 
                   {/* RATING */}
@@ -365,11 +780,11 @@ const BookingPage = () => {
                     />
 
                     <span className="text-sm font-semibold text-[#00224A]">
-                      {service.rating}
+                      {technicianRating || "New"}
                     </span>
 
                     <span className="text-sm text-slate-400">
-                      ({service.reviews} reviews)
+                      ({totalReviews} reviews)
                     </span>
                   </div>
 
@@ -378,8 +793,8 @@ const BookingPage = () => {
                   <div className="mt-5 flex items-center gap-3 rounded-xl bg-slate-50 p-3.5">
                     <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full">
                       <Image
-                        src={service.technician.image}
-                        alt={service.technician.name}
+                        src={technicianImage}
+                        alt={technicianName}
                         fill
                         sizes="44px"
                         className="object-cover"
@@ -392,16 +807,16 @@ const BookingPage = () => {
                       </p>
 
                       <p className="mt-0.5 text-sm font-semibold text-[#00224A]">
-                        {service.technician.name}
+                        {technicianName}
                       </p>
 
                       <p className="mt-1 text-xs text-slate-500">
-                        {service.technician.experience}
+                        {technicianExperience}
                       </p>
                     </div>
                   </div>
 
-                  {/* SUMMARY */}
+                  {/* BOOKING SUMMARY */}
 
                   <div className="my-5 border-t border-slate-200 pt-5">
                     <h3 className="text-sm font-semibold text-[#00224A]">
@@ -409,13 +824,16 @@ const BookingPage = () => {
                     </h3>
 
                     <div className="mt-4 space-y-3.5">
+
                       <div className="flex items-center justify-between gap-4 text-sm">
                         <span className="text-slate-500">
                           Date
                         </span>
 
                         <span className="font-medium text-[#00224A]">
-                          {selectedDate || "Not selected"}
+                          {selectedDate
+                            ? formatDate(selectedDate)
+                            : "Not selected"}
                         </span>
                       </div>
 
@@ -425,27 +843,23 @@ const BookingPage = () => {
                         </span>
 
                         <span className="font-medium text-[#00224A]">
-                          {selectedTime || "Not selected"}
+                          {selectedSlot
+                            ? `${formatTime(
+                                selectedSlot.startTime
+                              )} - ${formatTime(
+                                selectedSlot.endTime
+                              )}`
+                            : "Not selected"}
                         </span>
                       </div>
 
                       <div className="flex items-center justify-between gap-4 text-sm">
                         <span className="text-slate-500">
-                          Duration
+                          Service area
                         </span>
 
-                        <span className="font-medium text-[#00224A]">
-                          {service.duration}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between gap-4 text-sm">
-                        <span className="text-slate-500">
-                          Location
-                        </span>
-
-                        <span className="font-medium text-[#00224A]">
-                          {service.location}
+                        <span className="max-w-[180px] text-right font-medium text-[#00224A]">
+                          {technicianLocation}
                         </span>
                       </div>
                     </div>
@@ -461,7 +875,7 @@ const BookingPage = () => {
                         </p>
 
                         <p className="mt-1 text-3xl font-bold text-[#00224A]">
-                          ${service.price.toLocaleString()}
+                          ৳{servicePrice.toLocaleString()}
                         </p>
                       </div>
 
@@ -471,19 +885,22 @@ const BookingPage = () => {
                     </div>
                   </div>
 
-                  {/* SECURITY */}
+                  {/* PAYMENT INFO */}
 
                   <div className="mt-5 flex gap-3 rounded-xl bg-[#00224A]/5 p-3.5">
-                    <ShieldCheck
+                    <CheckCircle2
                       size={18}
                       className="mt-0.5 shrink-0 text-[#EC620B]"
                     />
 
                     <p className="text-xs leading-5 text-slate-500">
-                      Your booking is protected with verified
-                      professionals and secure payment.
+                      After requesting your booking,
+                      you will be redirected to secure
+                      Stripe Checkout to complete your
+                      payment.
                     </p>
                   </div>
+
                 </div>
               </div>
             </aside>
